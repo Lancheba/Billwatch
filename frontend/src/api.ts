@@ -5,6 +5,15 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('billwatch_token')
+  if (token) {
+    config.headers = config.headers ?? {}
+    config.headers.Authorization = `Token ${token}`
+  }
+  return config
+})
+
 export default api
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -91,4 +100,22 @@ export const decisionsApi = {
 export const agentApi = {
   run: (days = 7) =>
     api.post('/agent/run/', { days }).then(r => r.data),
+}
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+
+export interface User {
+  id: number
+  username: string
+  email: string
+}
+
+export const authApi = {
+  signup: (username: string, email: string, password: string) =>
+    api.post<{ token: string; user: User }>('/auth/signup/', { username, email, password })
+      .then(r => r.data),
+  login: (username: string, password: string) =>
+    api.post<{ token: string; user: User }>('/auth/login/', { username, password })
+      .then(r => r.data),
+  me: () => api.get<User>('/auth/me/').then(r => r.data),
 }

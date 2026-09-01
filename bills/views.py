@@ -7,6 +7,7 @@ from datetime import date, timedelta
 
 from django.utils import timezone
 from rest_framework import status, viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -22,8 +23,14 @@ class BillViewSet(viewsets.ModelViewSet):
       POST /api/bills/import/            — bulk CSV import
     """
 
-    queryset = Bill.objects.all()
     serializer_class = BillSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Bill.objects.filter(owner=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
     @action(detail=False, methods=["get"], url_path="due-soon")
     def due_soon(self, request):
@@ -37,7 +44,7 @@ class BillViewSet(viewsets.ModelViewSet):
         today = date.today()
         cutoff = today + timedelta(days=days)
         qs = Bill.objects.filter(
-            due_date__gte=today, due_date__lte=cutoff
+            owner=request.user, due_date__gte=today, due_date__lte=cutoff
         ).exclude(status__in=["paid", "cancelled"])
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
@@ -88,8 +95,13 @@ class DecisionLogViewSet(viewsets.ReadOnlyModelViewSet):
     POST /api/decisions/<id>/reject/   — user rejects a drafted action.
     """
 
-    queryset = DecisionLog.objects.select_related("bill").all()
     serializer_class = DecisionLogSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return DecisionLog.objects.select_related("bill").filter(
+            bill__owner=self.request.user
+        )
 
     @action(detail=True, methods=["post"])
     def approve(self, request, pk=None):
@@ -118,6 +130,8 @@ class AgentRunView(APIView):
 
     Optional body: { "days": 7 }
     """
+
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         days = int(request.data.get("days", 7))

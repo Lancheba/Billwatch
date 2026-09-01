@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -22,6 +23,10 @@ class Bill(models.Model):
         ("paid", "Paid"),
     ]
 
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name="bills", null=True, blank=True,
+    )
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
     amount = models.DecimalField(max_digits=8, decimal_places=2)

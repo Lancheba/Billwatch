@@ -14,7 +14,7 @@ class BillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bill
         fields = "__all__"
-        read_only_fields = ["created_at", "updated_at"]
+        read_only_fields = ["created_at", "updated_at", "owner"]
 
 
 class DecisionLogSerializer(serializers.ModelSerializer):
