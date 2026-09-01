@@ -3,6 +3,29 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { dashboardApi } from '../api'
 
+// Real React Icons & Brand Icons
+import { SiNetflix, SiSpotify } from 'react-icons/si'
+import { 
+  HiOutlineCreditCard, 
+  HiOutlineDocumentText, 
+  HiOutlineBell, 
+  HiOutlineAdjustmentsHorizontal,
+  HiOutlineLightBulb,
+  HiOutlineShieldCheck,
+  HiOutlineChevronLeft,
+  HiOutlineChevronRight,
+  HiOutlineSparkles,
+  HiOutlineTv,
+  HiOutlineBriefcase,
+  HiOutlineMusicalNote,
+  HiOutlineCloud,
+  HiOutlineEllipsisHorizontal,
+  HiOutlineArrowTrendingUp,
+  HiOutlineHome,
+  HiOutlineClock
+} from 'react-icons/hi2'
+import { RiStackLine } from 'react-icons/ri'
+
 export default function Dashboard() {
   const [selectedMonth] = useState('September 2026')
   const { data: summary } = useQuery({
@@ -21,7 +44,7 @@ export default function Dashboard() {
   const monthlyTotal = summary?.monthly_commitments ? parseFloat(summary.monthly_commitments.total) : 18450
   const totalSpend = monthlyTotal > 0 ? monthlyTotal : 18450
 
-  const subTotal = summary?.potential_savings ? 4299 : 4299
+  const subTotal = 4299
   const billsTotal = 11151
   const emiTotal = 3000
 
@@ -33,7 +56,7 @@ export default function Dashboard() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
-            Good morning, Arjun 👋
+            Good morning, Arjun
           </h1>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.9375rem' }}>
             Here's what's happening with your finances today.
@@ -41,23 +64,10 @@ export default function Dashboard() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <button className="glass-icon-btn" title="Notifications">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
+            <HiOutlineBell size={18} />
           </button>
           <button className="glass-icon-btn" title="Filter & View Settings">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="4" y1="21" x2="4" y2="14" />
-              <line x1="4" y1="10" x2="4" y2="3" />
-              <line x1="12" y1="21" x2="12" y2="12" />
-              <line x1="12" y1="8" x2="12" y2="3" />
-              <line x1="20" y1="21" x2="20" y2="16" />
-              <line x1="20" y1="12" x2="20" y2="3" />
-              <line x1="1" y1="14" x2="7" y2="14" />
-              <line x1="9" y1="8" x2="15" y2="8" />
-              <line x1="17" y1="16" x2="23" y2="16" />
-            </svg>
+            <HiOutlineAdjustmentsHorizontal size={18} />
           </button>
         </div>
       </div>
@@ -70,8 +80,8 @@ export default function Dashboard() {
             <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
               Total Monthly Spending
             </div>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.9rem' }}>💳</span>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+              <HiOutlineCreditCard size={18} />
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
@@ -88,8 +98,8 @@ export default function Dashboard() {
             <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
               Subscriptions
             </div>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.9rem' }}>📦</span>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+              <RiStackLine size={18} />
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
@@ -106,8 +116,8 @@ export default function Dashboard() {
             <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
               Bills
             </div>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.9rem' }}>📄</span>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+              <HiOutlineDocumentText size={18} />
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
@@ -124,8 +134,8 @@ export default function Dashboard() {
             <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
               EMIs
             </div>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontSize: '0.9rem' }}>🏦</span>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff' }}>
+              <HiOutlineCreditCard size={18} />
             </div>
           </div>
           <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
@@ -265,7 +275,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Upcoming Payments Card */}
+        {/* Upcoming Payments Card with Real Brand Icons */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
@@ -278,67 +288,68 @@ export default function Dashboard() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
             {[
-              { icon: 'N', name: 'Netflix', type: 'Subscription', date: '05 Sep', amount: '₹649', days: '2 days' },
-              { icon: '💡', name: 'Electricity Bill', type: 'Bill', date: '08 Sep', amount: '₹1,450', days: '5 days' },
-              { icon: '🎵', name: 'Spotify', type: 'Subscription', date: '12 Sep', amount: '₹119', days: '9 days' },
-              { icon: '🛡️', name: 'Insurance Premium', type: 'Bill', date: '15 Sep', amount: '₹2,300', days: '12 days' },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.6rem 0.85rem',
-                  borderRadius: 16,
-                  background: 'rgba(255, 255, 255, 0.025)',
-                  border: '1px solid rgba(255, 255, 255, 0.07)',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 10,
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontWeight: 800,
-                      fontSize: '0.875rem',
-                      color: '#ffffff',
-                    }}
-                  >
-                    {item.icon}
+              { icon: SiNetflix, name: 'Netflix', type: 'Subscription', date: '05 Sep', amount: '₹649', days: '2 days' },
+              { icon: HiOutlineLightBulb, name: 'Electricity Bill', type: 'Bill', date: '08 Sep', amount: '₹1,450', days: '5 days' },
+              { icon: SiSpotify, name: 'Spotify', type: 'Subscription', date: '12 Sep', amount: '₹119', days: '9 days' },
+              { icon: HiOutlineShieldCheck, name: 'Insurance Premium', type: 'Bill', date: '15 Sep', amount: '₹2,300', days: '12 days' },
+            ].map((item, idx) => {
+              const IconComponent = item.icon
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.6rem 0.85rem',
+                    borderRadius: 16,
+                    background: 'rgba(255, 255, 255, 0.025)',
+                    border: '1px solid rgba(255, 255, 255, 0.07)',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 10,
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#ffffff',
+                      }}
+                    >
+                      <IconComponent size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{item.type}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff' }}>{item.name}</div>
-                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{item.type}</div>
-                  </div>
-                </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.date}</div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#ffffff' }}>{item.amount}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.date}</div>
+                      <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#ffffff' }}>{item.amount}</div>
+                    </div>
+                    <span
+                      className="glass-pill"
+                      style={{
+                        padding: '0.2rem 0.6rem',
+                        fontSize: '0.7rem',
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                      }}
+                    >
+                      {item.days}
+                    </span>
                   </div>
-                  <span
-                    className="glass-pill"
-                    style={{
-                      padding: '0.2rem 0.6rem',
-                      fontSize: '0.7rem',
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      color: '#ffffff',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
-                    }}
-                  >
-                    {item.days}
-                  </span>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
@@ -358,22 +369,27 @@ export default function Dashboard() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             {[
-              { icon: '📺', name: 'Entertainment', amount: '₹2,248 (52%)', pct: 52 },
-              { icon: '💼', name: 'Productivity', amount: '₹799 (18%)', pct: 18 },
-              { icon: '🎵', name: 'Music', amount: '₹599 (14%)', pct: 14 },
-              { icon: '☁️', name: 'Cloud', amount: '₹299 (7%)', pct: 7 },
-              { icon: '💬', name: 'Others', amount: '₹354 (9%)', pct: 9 },
-            ].map((cat, i) => (
-              <div key={i}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 4 }}>
-                  <span style={{ color: '#cbd5e1' }}>{cat.icon} {cat.name}</span>
-                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{cat.amount}</span>
+              { icon: HiOutlineTv, name: 'Entertainment', amount: '₹2,248 (52%)', pct: 52 },
+              { icon: HiOutlineBriefcase, name: 'Productivity', amount: '₹799 (18%)', pct: 18 },
+              { icon: HiOutlineMusicalNote, name: 'Music', amount: '₹599 (14%)', pct: 14 },
+              { icon: HiOutlineCloud, name: 'Cloud', amount: '₹299 (7%)', pct: 7 },
+              { icon: HiOutlineEllipsisHorizontal, name: 'Others', amount: '₹354 (9%)', pct: 9 },
+            ].map((cat, i) => {
+              const CatIcon = cat.icon
+              return (
+                <div key={i}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 4 }}>
+                    <span style={{ color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <CatIcon size={14} /> {cat.name}
+                    </span>
+                    <span style={{ color: '#ffffff', fontWeight: 600 }}>{cat.amount}</span>
+                  </div>
+                  <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: `${cat.pct}%`, height: '100%', background: '#ffffff', borderRadius: 2 }} />
+                  </div>
                 </div>
-                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ width: `${cat.pct}%`, height: '100%', background: '#ffffff', borderRadius: 2 }} />
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
 
@@ -433,7 +449,7 @@ export default function Dashboard() {
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
-              <span style={{ fontSize: '1rem' }}>✨</span>
+              <HiOutlineSparkles size={18} style={{ color: '#ffffff' }} />
               <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
                 AI Insight
               </h3>
@@ -520,26 +536,29 @@ export default function Dashboard() {
 
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
               {[
-                { icon: '📈', label: 'Payment Behavior', val: 'Good' },
-                { icon: '🏠', label: 'Spending Trend', val: 'Attention' },
-                { icon: '💼', label: 'Subscription Health', val: 'Good' },
-                { icon: '⏱️', label: 'Upcoming Load', val: 'Moderate' },
-              ].map((chip, i) => (
-                <div
-                  key={i}
-                  className="glass-pill"
-                  style={{
-                    padding: '0.35rem 0.75rem',
-                    fontSize: '0.75rem',
-                    background: 'rgba(255, 255, 255, 0.04)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                  }}
-                >
-                  <span>{chip.icon}</span>
-                  <span style={{ color: '#94a3b8' }}>{chip.label}</span>
-                  <strong style={{ color: '#ffffff' }}>{chip.val}</strong>
-                </div>
-              ))}
+                { icon: HiOutlineArrowTrendingUp, label: 'Payment Behavior', val: 'Good' },
+                { icon: HiOutlineHome, label: 'Spending Trend', val: 'Attention' },
+                { icon: HiOutlineBriefcase, label: 'Subscription Health', val: 'Good' },
+                { icon: HiOutlineClock, label: 'Upcoming Load', val: 'Moderate' },
+              ].map((chip, i) => {
+                const ChipIcon = chip.icon
+                return (
+                  <div
+                    key={i}
+                    className="glass-pill"
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      fontSize: '0.75rem',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                    }}
+                  >
+                    <ChipIcon size={14} style={{ color: '#ffffff' }} />
+                    <span style={{ color: '#94a3b8' }}>{chip.label}</span>
+                    <strong style={{ color: '#ffffff' }}>{chip.val}</strong>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
@@ -551,8 +570,12 @@ export default function Dashboard() {
               {selectedMonth}
             </h3>
             <div style={{ display: 'flex', gap: '0.25rem' }}>
-              <button className="glass-icon-btn" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>‹</button>
-              <button className="glass-icon-btn" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>›</button>
+              <button className="glass-icon-btn" style={{ width: 28, height: 28 }}>
+                <HiOutlineChevronLeft size={14} />
+              </button>
+              <button className="glass-icon-btn" style={{ width: 28, height: 28 }}>
+                <HiOutlineChevronRight size={14} />
+              </button>
             </div>
           </div>
 
@@ -569,7 +592,6 @@ export default function Dashboard() {
 
           {/* Calendar Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, textAlign: 'center', fontSize: '0.75rem' }}>
-            {/* Week 1 */}
             <div style={{ color: '#475569', padding: '4px 0' }}>31</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>1</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>2</div>
@@ -582,7 +604,6 @@ export default function Dashboard() {
             </div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>6</div>
 
-            {/* Week 2 */}
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>7</div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -595,7 +616,6 @@ export default function Dashboard() {
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>12</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>13</div>
 
-            {/* Week 3 */}
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>14</div>
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#ffffff', color: '#000000', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -608,7 +628,6 @@ export default function Dashboard() {
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>19</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>20</div>
 
-            {/* Week 4 */}
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>21</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>22</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>23</div>
@@ -617,7 +636,6 @@ export default function Dashboard() {
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>26</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>27</div>
 
-            {/* Week 5 */}
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>28</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>29</div>
             <div style={{ color: '#cbd5e1', padding: '4px 0' }}>30</div>

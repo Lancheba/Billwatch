@@ -16,20 +16,37 @@ import AddBill from './pages/AddBill'
 import { agentApi, billsApi } from './api'
 import { AuthProvider, useAuth } from './AuthContext'
 
+// React Icons
+import { IoWaterOutline } from 'react-icons/io5'
+import { 
+  HiOutlineHome, 
+  HiOutlineDocumentText, 
+  HiOutlineRefresh, 
+  HiOutlineCalendar, 
+  HiOutlineCreditCard, 
+  HiOutlineChartBar, 
+  HiOutlineSparkles, 
+  HiOutlineDocumentReport, 
+  HiOutlineCog,
+  HiOutlineUser,
+  HiOutlineChevronDown,
+  HiOutlinePlay
+} from 'react-icons/hi'
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
 })
 
 const NAV_LINKS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '🏠', end: true },
-  { to: '/add', label: 'Bills', icon: '📄' },
-  { to: '/attention', label: 'Subscriptions', icon: '🔄' },
-  { to: '/calendar', label: 'Calendar', icon: '📅' },
-  { to: '/simulator', label: 'Payments', icon: '💳' },
-  { to: '/analytics', label: 'Analytics', icon: '📊' },
-  { to: '/chat', label: 'AI Insights', icon: '✨' },
-  { to: '/log', label: 'Reports', icon: '📑' },
-  { to: '/settings', label: 'Settings', icon: '⚙️' },
+  { to: '/dashboard', label: 'Dashboard', icon: HiOutlineHome, end: true },
+  { to: '/add', label: 'Bills', icon: HiOutlineDocumentText },
+  { to: '/attention', label: 'Subscriptions', icon: HiOutlineRefresh },
+  { to: '/calendar', label: 'Calendar', icon: HiOutlineCalendar },
+  { to: '/simulator', label: 'Payments', icon: HiOutlineCreditCard },
+  { to: '/analytics', label: 'Analytics', icon: HiOutlineChartBar },
+  { to: '/chat', label: 'AI Insights', icon: HiOutlineSparkles },
+  { to: '/log', label: 'Reports', icon: HiOutlineDocumentReport },
+  { to: '/settings', label: 'Settings', icon: HiOutlineCog },
 ]
 
 function AppLayout() {
@@ -72,7 +89,7 @@ function AppLayout() {
           top: '1.25rem',
         }}
       >
-        {/* Brand Logo */}
+        {/* Brand Logo with Droplet Icon */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0 0.75rem 1.75rem' }}>
           <div
             style={{
@@ -84,9 +101,10 @@ function AppLayout() {
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 0 16px rgba(255,255,255,0.4)',
+              color: '#000000',
             }}
           >
-            <span style={{ fontSize: '1.1rem', color: '#000', lineHeight: 1 }}>💧</span>
+            <IoWaterOutline size={20} />
           </div>
           <span style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em', color: '#ffffff' }}>
             BillWatch
@@ -95,14 +113,14 @@ function AppLayout() {
 
         {/* Navigation Items */}
         <nav style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
-          {NAV_LINKS.map(({ to, label, icon, end }) => (
+          {NAV_LINKS.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
             >
-              <span style={{ fontSize: '1.1rem', width: 22, textAlign: 'center' }}>{icon}</span>
+              <Icon size={18} style={{ width: 22, textAlign: 'center', flexShrink: 0 }} />
               <span>{label}</span>
             </NavLink>
           ))}
@@ -122,7 +140,8 @@ function AppLayout() {
               borderColor: 'rgba(255, 255, 255, 0.2)',
             }}
           >
-            {running ? '⏳ Running...' : '▶ Run AI Watcher'}
+            <HiOutlinePlay size={14} />
+            <span>{running ? 'Running...' : 'Run AI Watcher'}</span>
           </button>
           {runMsg && (
             <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4, textAlign: 'center' }}>
@@ -153,11 +172,11 @@ function AppLayout() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '0.9rem',
+                color: '#ffffff',
                 flexShrink: 0,
               }}
             >
-              👤
+              <HiOutlineUser size={16} />
             </div>
             <div style={{ overflow: 'hidden', textAlign: 'left' }}>
               <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -176,11 +195,12 @@ function AppLayout() {
               border: 'none',
               color: '#94a3b8',
               cursor: 'pointer',
-              fontSize: '0.85rem',
+              display: 'flex',
+              alignItems: 'center',
               padding: '2px 4px',
             }}
           >
-            ⌄
+            <HiOutlineChevronDown size={16} />
           </button>
         </div>
       </aside>

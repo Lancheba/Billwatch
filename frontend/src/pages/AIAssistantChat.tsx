@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { agentApi } from '../api'
+import { HiOutlineSparkles, HiOutlinePaperAirplane, HiOutlineLightBulb } from 'react-icons/hi2'
 
 interface Message {
   sender: 'user' | 'assistant'
@@ -13,7 +14,7 @@ export default function AIAssistantChat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: 'assistant',
-      text: "👋 Hi! I'm your Billwatch AI Financial Assistant. Ask me anything about your subscriptions, price increases, cashflow forecasts, or simulated cancellations.",
+      text: "Hello, I am your Billwatch AI Financial Assistant. Ask me anything about your subscriptions, price increases, cashflow forecasts, or simulated cancellations.",
       suggestions: [
         'Which subscriptions can I cancel to save money?',
         'What is my total monthly spend by category?',
@@ -48,7 +49,7 @@ export default function AIAssistantChat() {
         ...prev,
         {
           sender: 'assistant',
-          text: "⚠️ Sorry, I encountered an error connecting to the AI engine. Please make sure the backend is running.",
+          text: "Notice: Encountered an error connecting to the AI engine. Please make sure the backend is running.",
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ])
@@ -72,27 +73,30 @@ export default function AIAssistantChat() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto', height: 'calc(100vh - 8rem)', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ marginBottom: '1rem' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, color: '#1e1b4b' }}>
-          💬 AI Financial Assistant
-        </h1>
-        <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', height: 'calc(100vh - 4.5rem)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <HiOutlineSparkles size={22} style={{ color: '#ffffff' }} />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            AI Financial Assistant
+          </h1>
+        </div>
+        <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
           Conversational copilot powered by your real-time bills, health scores, and agent tools.
         </p>
       </div>
 
       {/* Chat messages container */}
       <div
-        className="card"
+        className="glass-card"
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '1.25rem',
+          padding: '1.5rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem',
-          background: '#f8fafc',
+          gap: '1.25rem',
+          background: 'rgba(255, 255, 255, 0.02)',
         }}
       >
         {messages.map((m, i) => (
@@ -108,12 +112,12 @@ export default function AIAssistantChat() {
           >
             <div
               style={{
-                background: m.sender === 'user' ? '#4f46e5' : '#ffffff',
-                color: m.sender === 'user' ? 'white' : '#1e293b',
+                background: m.sender === 'user' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                color: '#ffffff',
                 padding: '0.875rem 1.125rem',
-                borderRadius: 12,
-                border: m.sender === 'user' ? 'none' : '1px solid #e2e8f0',
-                boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                borderRadius: 18,
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
                 fontSize: '0.9rem',
                 lineHeight: 1.5,
                 whiteSpace: 'pre-wrap',
@@ -121,7 +125,7 @@ export default function AIAssistantChat() {
             >
               {m.text}
             </div>
-            <span style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4 }}>
+            <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 4 }}>
               {m.timestamp}
             </span>
 
@@ -132,16 +136,15 @@ export default function AIAssistantChat() {
                   <button
                     key={idx}
                     onClick={() => handleSend(s)}
-                    className="btn"
+                    className="glass-pill"
                     style={{
-                      background: '#e0e7ff',
-                      color: '#3730a3',
                       fontSize: '0.75rem',
-                      padding: '0.3rem 0.6rem',
-                      borderRadius: 14,
+                      padding: '0.35rem 0.75rem',
+                      background: 'rgba(255, 255, 255, 0.04)',
+                      borderColor: 'rgba(255, 255, 255, 0.12)',
                     }}
                   >
-                    💡 {s}
+                    <HiOutlineLightBulb size={13} /> {s}
                   </button>
                 ))}
               </div>
@@ -149,7 +152,7 @@ export default function AIAssistantChat() {
           </div>
         ))}
         {chatMutation.isPending && (
-          <div style={{ alignSelf: 'flex-start', color: '#64748b', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ alignSelf: 'flex-start', color: '#94a3b8', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div className="spinner" style={{ width: 16, height: 16 }} />
             AI is analyzing your financial data...
           </div>
@@ -168,18 +171,21 @@ export default function AIAssistantChat() {
           style={{
             flex: 1,
             padding: '0.875rem 1.125rem',
-            borderRadius: 8,
-            border: '1px solid #cbd5e1',
+            borderRadius: 9999,
+            border: '1px solid rgba(255, 255, 255, 0.15)',
             fontSize: '0.95rem',
+            background: 'rgba(255, 255, 255, 0.04)',
+            color: '#ffffff',
           }}
         />
         <button
-          className="btn btn-primary"
+          className="glass-pill glass-pill-active"
           onClick={() => handleSend()}
           disabled={chatMutation.isPending}
-          style={{ background: '#4f46e5', padding: '0 1.5rem', fontWeight: 600 }}
+          style={{ padding: '0 1.5rem', fontWeight: 700 }}
         >
-          Send
+          <HiOutlinePaperAirplane size={16} />
+          <span>Send</span>
         </button>
       </div>
     </div>
