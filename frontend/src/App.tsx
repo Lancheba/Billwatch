@@ -1,24 +1,30 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { useState } from 'react'
+import Landing from './pages/Landing'
+import Login from './pages/Login'
+import Signup from './pages/Signup'
+import ProtectedRoute from './pages/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import NeedsAttention from './pages/NeedsAttention'
 import ActivityLog from './pages/ActivityLog'
 import AddBill from './pages/AddBill'
 import { agentApi } from './api'
-import { useState } from 'react'
+import { AuthProvider, useAuth } from './AuthContext'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
 })
 
 const NAV_LINKS = [
-  { to: '/', label: '📊 Dashboard', end: true },
+  { to: '/dashboard', label: '📊 Dashboard', end: true },
   { to: '/attention', label: '🚨 Needs Attention' },
   { to: '/log', label: '🤖 Agent Log' },
   { to: '/add', label: '➕ Add Bill' },
 ]
 
-function Layout() {
+function AppLayout() {
+  const { user, logout } = useAuth()
   const [running, setRunning] = useState(false)
   const [runMsg, setRunMsg] = useState<string | null>(null)
 
@@ -91,12 +97,30 @@ function Layout() {
             </div>
           )}
         </div>
+
+        <div style={{
+          padding: '1rem 1.25rem 0', marginTop: '0.5rem', borderTop: '1px solid #312e81',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <div style={{ fontSize: '0.75rem', color: '#c7d2fe' }}>
+            👤 {user?.username}
+          </div>
+          <button
+            onClick={logout}
+            style={{
+              background: 'none', border: 'none', color: '#a5b4fc',
+              fontSize: '0.75rem', cursor: 'pointer', padding: '0.25rem 0.5rem',
+            }}
+          >
+            Log out
+          </button>
+        </div>
       </nav>
 
       {/* Main content */}
       <main style={{ flex: 1, overflowX: 'auto', padding: '2rem' }}>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/attention" element={<NeedsAttention />} />
           <Route path="/log" element={<ActivityLog />} />
           <Route path="/add" element={<AddBill />} />
@@ -106,11 +130,31 @@ function Layout() {
   )
 }
 
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route
+        path="/*"
+        element={
+          <ProtectedRoute>
+            <AppLayout />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  )
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Layout />
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   )
