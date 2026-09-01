@@ -1,3 +1,82 @@
 from django.db import models
+from django.utils import timezone
 
-# Create your models here.
+
+class Bill(models.Model):
+    CATEGORY_CHOICES = [
+        ("utility", "Utility"),
+        ("subscription", "Subscription"),
+        ("loan", "Loan"),
+        ("other", "Other"),
+    ]
+    RECURRENCE_CHOICES = [
+        ("monthly", "Monthly"),
+        ("yearly", "Yearly"),
+        ("weekly", "Weekly"),
+        ("one_time", "One Time"),
+    ]
+    STATUS_CHOICES = [
+        ("active", "Active"),
+        ("flagged", "Flagged"),
+        ("cancelled", "Cancelled"),
+        ("paid", "Paid"),
+    ]
+
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    previous_amount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    due_date = models.DateField()
+    recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default="monthly")
+    is_subscription = models.BooleanField(default=False)
+    last_used_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
+    notes = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["due_date"]
+
+    def __str__(self):
+        return f"{self.name} (${self.amount}) — due {self.due_date}"
+
+
+class Subscription(models.Model):
+    """Optional richer subscription details linked to a Bill."""
+
+    bill = models.OneToOneField(Bill, on_delete=models.CASCADE, related_name="subscription_detail")
+    provider_url = models.URLField(null=True, blank=True)
+    usage_notes = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Subscription: {self.bill.name}"
+
+
+class DecisionLog(models.Model):
+    ACTION_CHOICES = [
+        ("auto_handled", "Auto Handled"),
+        ("flagged_for_review", "Flagged for Review"),
+        ("drafted_notification", "Drafted Notification"),
+        ("drafted_cancellation", "Drafted Cancellation"),
+    ]
+    USER_DECISION_CHOICES = [
+        ("approved", "Approved"),
+        ("rejected", "Rejected"),
+        ("pending", "Pending"),
+    ]
+
+    bill = models.ForeignKey(Bill, on_delete=models.CASCADE, related_name="decision_logs")
+    agent_action = models.CharField(max_length=30, choices=ACTION_CHOICES)
+    reasoning = models.TextField()
+    draft_content = models.TextField(null=True, blank=True)
+    user_decision = models.CharField(
+        max_length=20, choices=USER_DECISION_CHOICES, null=True, blank=True, default="pending"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"[{self.agent_action}] {self.bill.name} @ {self.created_at:%Y-%m-%d %H:%M}"
