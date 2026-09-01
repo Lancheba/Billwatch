@@ -1,39 +1,37 @@
 """
 Django management command: seed_demo_data
-
-Creates the demo Bills/Subscriptions described in the spec (Section 8):
-- 4 normal bills with upcoming due dates (agent auto-handles)
-- 1 bill with a price increase (Netflix $15.99 → $17.99)
-- 1 subscription unused for 90+ days (Gym App)
-- 1 bill due in 2 days
-
-Usage:
-    python manage.py seed_demo_data
-    python manage.py seed_demo_data --flush   # wipe all Bills first
+Seeds rich demo bills, price history, zombie subscriptions, and price hikes.
 """
 
 from __future__ import annotations
 
 from datetime import date, timedelta
-
+from django.contrib.auth import get_user_model
 from django.core.management.base import BaseCommand
+from bills.models import Bill, Subscription, PriceHistory
+from bills.services import (
+    detect_recurring_payments,
+    detect_zombie_subscriptions,
+    detect_spending_anomalies,
+)
 
-from bills.models import Bill, Subscription
-
+User = get_user_model()
 
 DEMO_BILLS = [
-    # --- Normal bills (agent auto-handles quietly) ---
     {
-        "name": "Electric Bill",
+        "name": "Electric Utility (ConEd)",
+        "merchant": "ConEd",
         "category": "utility",
         "amount": "120.00",
-        "due_date_offset": 12,  # days from today
+        "previous_amount": "115.00",
+        "due_date_offset": 12,
         "recurrence": "monthly",
         "is_subscription": False,
         "status": "active",
     },
     {
-        "name": "Internet (Comcast)",
+        "name": "Internet (Verizon Fios)",
+        "merchant": "Verizon",
         "category": "utility",
         "amount": "79.99",
         "due_date_offset": 18,
@@ -43,17 +41,19 @@ DEMO_BILLS = [
     },
     {
         "name": "Spotify Premium",
+        "merchant": "Spotify",
         "category": "subscription",
         "amount": "10.99",
         "due_date_offset": 20,
         "recurrence": "monthly",
         "is_subscription": True,
-        "last_used_days_ago": 5,  # recently used — should NOT be flagged
+        "last_used_days_ago": 2,
         "status": "active",
         "provider_url": "https://www.spotify.com/account/subscription/",
     },
     {
         "name": "Amazon Prime",
+        "merchant": "Amazon",
         "category": "subscription",
         "amount": "14.99",
         "due_date_offset": 25,
@@ -63,38 +63,60 @@ DEMO_BILLS = [
         "status": "active",
         "provider_url": "https://www.amazon.com/mc/pipelines/cancellation",
     },
-    # --- Bill with price increase (triggers detect_anomaly) ---
     {
-        "name": "Netflix",
+        "name": "Netflix Premium",
+        "merchant": "Netflix",
         "category": "subscription",
-        "amount": "17.99",
+        "amount": "19.99",
         "previous_amount": "15.99",
         "due_date_offset": 9,
         "recurrence": "monthly",
         "is_subscription": True,
-        "last_used_days_ago": 2,
+        "last_used_days_ago": 4,
         "status": "active",
         "provider_url": "https://www.netflix.com/cancelplan",
     },
-    # --- Unused subscription >60 days (triggers detect_unused_subscription) ---
     {
         "name": "Gym Fitness App",
+        "merchant": "GymApp",
         "category": "subscription",
-        "amount": "19.99",
+        "amount": "24.99",
         "due_date_offset": 7,
         "recurrence": "monthly",
         "is_subscription": True,
-        "last_used_days_ago": 92,  # 92 days ago — well past the 60-day threshold
+        "last_used_days_ago": 92,
         "status": "active",
         "provider_url": "https://gymapp.example.com/cancel",
-        "usage_notes": "Signed up in June, used it a few times, forgot about it.",
+        "usage_notes": "Signed up in spring, not opened in over 90 days.",
     },
-    # --- Bill due in 2 days (triggers due-soon flag) ---
     {
-        "name": "Water & Sewage",
+        "name": "Cloud Storage Pro",
+        "merchant": "Dropbox",
+        "category": "subscription",
+        "amount": "12.99",
+        "due_date_offset": 14,
+        "recurrence": "monthly",
+        "is_subscription": True,
+        "last_used_days_ago": 80,
+        "status": "active",
+        "provider_url": "https://dropbox.com/cancel",
+    },
+    {
+        "name": "Water & City Sewage",
+        "merchant": "CityWater",
         "category": "utility",
         "amount": "45.00",
-        "due_date_offset": 2,  # 2 days from today!
+        "due_date_offset": 2,
+        "recurrence": "monthly",
+        "is_subscription": False,
+        "status": "active",
+    },
+    {
+        "name": "Car Loan Payment",
+        "merchant": "ChaseAuto",
+        "category": "loan",
+        "amount": "285.00",
+        "due_date_offset": 16,
         "recurrence": "monthly",
         "is_subscription": False,
         "status": "active",
@@ -103,19 +125,22 @@ DEMO_BILLS = [
 
 
 class Command(BaseCommand):
-    help = "Seed the database with demo bills and subscriptions for the hackathon demo."
+    help = "Seed the database with rich demo bills, price history, and insights."
 
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--flush",
-            action="store_true",
-            help="Delete all existing Bills before seeding.",
-        )
+        parser.add_argument("--flush", action="store_true", help="Delete existing bills before seeding.")
+        parser.add_argument("--username", type=str, default="demo", help="Username to attach seeded bills to.")
 
     def handle(self, *args, **options):
+        username = options["username"]
+        user, _ = User.objects.get_or_create(username=username, defaults={"email": f"{username}@billwatch.local"})
+        if not user.has_usable_password():
+            user.set_password("pass12345")
+            user.save()
+
         if options["flush"]:
-            count, _ = Bill.objects.all().delete()
-            self.stdout.write(self.style.WARNING(f"Flushed {count} existing bills."))
+            count, _ = Bill.objects.filter(owner=user).delete()
+            self.stdout.write(self.style.WARNING(f"Flushed {count} existing bills for {username}."))
 
         today = date.today()
         created_count = 0
@@ -127,8 +152,10 @@ class Command(BaseCommand):
                 last_used = today - timedelta(days=spec["last_used_days_ago"])
 
             bill, created = Bill.objects.get_or_create(
+                owner=user,
                 name=spec["name"],
                 defaults={
+                    "merchant": spec.get("merchant", ""),
                     "category": spec["category"],
                     "amount": spec["amount"],
                     "previous_amount": spec.get("previous_amount"),
@@ -140,39 +167,26 @@ class Command(BaseCommand):
                 },
             )
 
-            if not created:
-                self.stdout.write(f"  (already exists, skipping) {spec['name']}")
-                continue
+            if created:
+                created_count += 1
+                if spec.get("previous_amount"):
+                    # Add earlier price history record
+                    PriceHistory.objects.create(
+                        bill=bill,
+                        amount=spec["previous_amount"],
+                        notes="Recorded 6 months ago",
+                    )
 
-            created_count += 1
+                provider_url = spec.get("provider_url")
+                if spec["is_subscription"] and provider_url:
+                    Subscription.objects.get_or_create(
+                        bill=bill,
+                        defaults={"provider_url": provider_url, "usage_notes": spec.get("usage_notes", "")},
+                    )
 
-            # Create Subscription detail if applicable
-            provider_url = spec.get("provider_url")
-            usage_notes = spec.get("usage_notes")
-            if spec["is_subscription"] and (provider_url or usage_notes):
-                Subscription.objects.get_or_create(
-                    bill=bill,
-                    defaults={
-                        "provider_url": provider_url,
-                        "usage_notes": usage_notes,
-                    },
-                )
+        # Trigger detection routines to populate initial AI insights
+        detect_recurring_payments(user)
+        detect_zombie_subscriptions(user)
+        detect_spending_anomalies(user)
 
-            flag = ""
-            if spec.get("previous_amount"):
-                flag = "  [PRICE INCREASE]"
-            if spec.get("last_used_days_ago", 0) >= 60:
-                flag = "  [UNUSED >60 DAYS]"
-            if spec["due_date_offset"] <= 3:
-                flag += "  [DUE SOON]"
-            self.stdout.write(f"  Created: {bill.name} (due {due_date}){flag}")
-
-        self.stdout.write(
-            self.style.SUCCESS(f"\nSeeded {created_count} bill(s) successfully.")
-        )
-        self.stdout.write(
-            "\nRun the agent now:\n"
-            "    python run_agent.py\n"
-            "Or via the API:\n"
-            "    curl -X POST http://127.0.0.1:8000/api/agent/run/\n"
-        )
+        self.stdout.write(self.style.SUCCESS(f"Seeded demo bills and initial AI Insights for user '{username}'!"))

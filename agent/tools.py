@@ -330,6 +330,7 @@ def log_decision(
     action: str,
     reasoning: str,
     draft_content: str | None = None,
+    signals: dict | list | None = None,
 ) -> dict:
     """
     Record what the agent decided to do (and why) into a DecisionLog.
@@ -338,16 +339,23 @@ def log_decision(
         bill_id: Primary key of the related Bill.
         action:  One of auto_handled | flagged_for_review |
                  drafted_notification | drafted_cancellation.
-        reasoning: Human-readable explanation of why this action was taken.
+        reasoning: Human-readable explanation or structured reasoning of why this action was taken.
         draft_content: The drafted notification/email text, if any.
+        signals: Optional structured signals (e.g. {"usage_idle_days": 60, "price_increase_pct": 12.5, "confidence": 0.95})
 
     Returns:
         The created DecisionLog dict from the API.
     """
+    formatted_reasoning = reasoning
+    if signals:
+        import json
+        if isinstance(signals, (dict, list)):
+            formatted_reasoning = f"{reasoning}\n[Signals: {json.dumps(signals)}]"
+
     payload = {
         "bill": bill_id,
         "agent_action": action,
-        "reasoning": reasoning,
+        "reasoning": formatted_reasoning,
         "draft_content": draft_content,
         "user_decision": "pending" if action != "auto_handled" else None,
     }

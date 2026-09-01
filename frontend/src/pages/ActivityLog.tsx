@@ -1,156 +1,139 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { decisionsApi, type DecisionLog } from '../api'
-import { ACTION_COLORS, ACTION_LABELS, fmtDateTime } from '../utils'
+import { fmtDate } from '../utils'
 
-const ACTION_ICONS: Record<string, string> = {
-  auto_handled: '✓',
-  flagged_for_review: '⚑',
-  drafted_notification: '🔔',
-  drafted_cancellation: '✉️',
-}
-
-const DECISION_ICON: Record<string, string> = {
-  approved: '✅',
-  rejected: '❌',
-  pending: '⏳',
-}
-
-function LogRow({ log }: { log: DecisionLog }) {
-  const isAuto = log.agent_action === 'auto_handled'
-  return (
-    <div style={{
-      display: 'flex', gap: '1rem', padding: '0.875rem 1.25rem',
-      borderBottom: '1px solid #f1f5f9',
-      background: isAuto ? 'white' : '#fffbeb',
-    }}>
-      {/* Timeline dot */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-        <div style={{
-          width: 32, height: 32, borderRadius: '50%', display: 'flex',
-          alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem',
-          background: isAuto ? '#f0fdf4' : '#fef3c7',
-          border: `2px solid ${isAuto ? '#bbf7d0' : '#fcd34d'}`,
-        }}>
-          {ACTION_ICONS[log.agent_action]}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
-          <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{log.bill_name}</span>
-          <span className={`badge ${ACTION_COLORS[log.agent_action]}`}>
-            {ACTION_LABELS[log.agent_action]}
-          </span>
-          {log.user_decision && log.user_decision !== 'pending' && (
-            <span style={{ fontSize: '0.8rem' }}>
-              {DECISION_ICON[log.user_decision]} {log.user_decision}
-            </span>
-          )}
-          {log.user_decision === 'pending' && !isAuto && (
-            <span className="badge" style={{ background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca' }}>
-              ⏳ pending review
-            </span>
-          )}
-        </div>
-
-        <p style={{ fontSize: '0.8125rem', color: '#475569', margin: 0, lineHeight: 1.5 }}>
-          {log.reasoning}
-        </p>
-
-        {log.draft_content && (
-          <details style={{ marginTop: '0.4rem' }}>
-            <summary style={{ fontSize: '0.75rem', color: '#7c3aed', cursor: 'pointer', userSelect: 'none' }}>
-              View drafted message
-            </summary>
-            <pre style={{
-              marginTop: '0.4rem', padding: '0.75rem', background: '#f8f7ff',
-              border: '1px solid #ddd6fe', borderRadius: '0.5rem',
-              whiteSpace: 'pre-wrap', fontSize: '0.75rem', fontFamily: 'inherit',
-              color: '#1e1b4b',
-            }}>
-              {log.draft_content}
-            </pre>
-          </details>
-        )}
-      </div>
-
-      {/* Timestamp */}
-      <div style={{ fontSize: '0.75rem', color: '#94a3b8', flexShrink: 0, alignSelf: 'flex-start' }}>
-        {fmtDateTime(log.created_at)}
-      </div>
-    </div>
-  )
+const ACTION_COLORS: Record<string, string> = {
+  auto_handled: 'badge-active',
+  flagged_for_review: 'badge-flagged',
+  drafted_notification: 'badge-paid',
+  drafted_cancellation: 'badge-cancelled',
 }
 
 export default function ActivityLog() {
-  const { data: logs = [], isLoading, error, dataUpdatedAt } = useQuery({
+  const queryClient = useQueryClient()
+
+  const { data: logs = [], isLoading, error } = useQuery({
     queryKey: ['decisions'],
     queryFn: decisionsApi.list,
-    refetchInterval: 8_000,
   })
 
-  const autoCount = logs.filter(l => l.agent_action === 'auto_handled').length
-  const flaggedCount = logs.filter(l => l.agent_action !== 'auto_handled').length
+  const approveMutation = useMutation({
+    mutationFn: (id: number) => decisionsApi.approve(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['decisions'] }),
+  })
+
+  const rejectMutation = useMutation({
+    mutationFn: (id: number) => decisionsApi.reject(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['decisions'] }),
+  })
 
   if (isLoading) return (
     <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4rem' }}>
       <div className="spinner" />
     </div>
   )
+
   if (error) return (
-    <div className="card" style={{ color: '#dc2626' }}>⚠️ Could not load activity log.</div>
+    <div className="card" style={{ color: '#dc2626' }}>
+      ⚠️ Could not load activity log.
+    </div>
   )
 
   return (
-    <div>
+    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
       <div style={{ marginBottom: '1.5rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Agent Activity Log</h1>
-        <p style={{ color: '#64748b', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-          Every decision the agent made — auto-handled and flagged. Proof it's an agent, not a form.
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, color: '#1e1b4b' }}>
+          🤖 Explainable Agent Decision Audit Log
+        </h1>
+        <p style={{ color: '#64748b', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+          Transparent audit trail of every autonomous decision, structured factor signal, and user approval.
         </p>
       </div>
 
-      {/* Stats row */}
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
-        <div className="card" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem 1.25rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>✓</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#15803d' }}>{autoCount}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Auto-handled quietly</div>
-          </div>
-        </div>
-        <div className="card" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', padding: '0.75rem 1.25rem' }}>
-          <span style={{ fontSize: '1.25rem' }}>⚑</span>
-          <div>
-            <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#b45309' }}>{flaggedCount}</div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Surfaced for review</div>
-          </div>
-        </div>
-        {dataUpdatedAt > 0 && (
-          <div style={{ alignSelf: 'center', fontSize: '0.75rem', color: '#94a3b8' }}>
-            Refreshing every 8s · last: {new Date(dataUpdatedAt).toLocaleTimeString()}
-          </div>
-        )}
-      </div>
-
-      {/* Log feed */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between' }}>
-          <h2 style={{ fontWeight: 600, fontSize: '1rem' }}>Decision Feed</h2>
-          <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>{logs.length} entries</span>
+        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ fontWeight: 600, fontSize: '1rem', margin: 0 }}>Decisions & Actions</h2>
+          <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>{logs.length} logged events</span>
         </div>
 
         {logs.length === 0 ? (
           <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
-            <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🤖</div>
-            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>No agent runs yet</div>
-            <div style={{ fontSize: '0.875rem' }}>
-              Hit <strong>Run Agent</strong> in the sidebar to start.
-            </div>
+            No agent decisions logged yet. Click "Run Agent" in the sidebar to trigger an autonomous review.
           </div>
         ) : (
-          logs.map(l => <LogRow key={l.id} log={l} />)
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            {logs.map((log: DecisionLog) => {
+              const isPending = log.user_decision === 'pending'
+              return (
+                <div
+                  key={log.id}
+                  style={{
+                    padding: '1.25rem',
+                    borderBottom: '1px solid #f1f5f9',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    background: isPending ? '#fffdf5' : '#ffffff',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span className={`badge ${ACTION_COLORS[log.agent_action] ?? ''}`}>
+                        {log.agent_action.replace(/_/g, ' ')}
+                      </span>
+                      <strong style={{ fontSize: '1rem', color: '#1e293b' }}>{log.bill_name}</strong>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      {log.user_decision && (
+                        <span
+                          className="badge"
+                          style={{
+                            background: log.user_decision === 'approved' ? '#dcfce7' : log.user_decision === 'rejected' ? '#fee2e2' : '#fef3c7',
+                            color: log.user_decision === 'approved' ? '#15803d' : log.user_decision === 'rejected' ? '#b91c1c' : '#b45309',
+                            fontWeight: 600,
+                          }}
+                        >
+                          User: {log.user_decision}
+                        </span>
+                      )}
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                        {fmtDate(log.created_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ background: '#f8fafc', padding: '0.75rem', borderRadius: 6, fontSize: '0.875rem', color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>
+                    {log.reasoning}
+                  </div>
+
+                  {log.draft_content && (
+                    <div style={{ background: '#1e1b4b', color: '#c7d2fe', padding: '0.75rem 1rem', borderRadius: 6, fontSize: '0.75rem', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+                      {log.draft_content}
+                    </div>
+                  )}
+
+                  {isPending && (
+                    <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                      <button
+                        className="btn btn-primary"
+                        style={{ background: '#16a34a', fontSize: '0.8125rem' }}
+                        onClick={() => approveMutation.mutate(log.id)}
+                      >
+                        ✓ Approve Action
+                      </button>
+                      <button
+                        className="btn"
+                        style={{ background: '#fee2e2', color: '#b91c1c', fontSize: '0.8125rem' }}
+                        onClick={() => rejectMutation.mutate(log.id)}
+                      >
+                        ✕ Reject Action
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         )}
       </div>
     </div>

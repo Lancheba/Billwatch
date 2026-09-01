@@ -1,123 +1,114 @@
-# Bill & Subscription Watcher
+# 💳 Billwatch — AI-Powered Autonomous Bill & Subscription Watcher
 
 > **Hackathon:** Agents for Humans (AWS / Devpost) — Everyday Agents track  
 > **Repository:** [https://github.com/Lancheba/Billwatch](https://github.com/Lancheba/Billwatch)  
-> **Pitch:** An everyday AI agent that tracks recurring bills and subscriptions, flags due dates and price increases, and drafts the next action with human approval—so nothing slips through and nothing renews unnoticed.
+> **Pitch:** An everyday autonomous AI financial assistant that tracks recurring bills, identifies zombie subscriptions, detects price surges and anomalies, forecasts 30-day cashflow, runs interactive What-If budget simulations, and drafts cancellation workflows with human-in-the-loop approval.
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture & Feature Roadmap (Phases 0 — 5)
 
 ```
-[CSV Statement / Manual Form / Pasted Email Text]
-                       │
-                       ▼
-             [ Django REST API ] ◄──────► [ SQLite / PostgreSQL ]
-              (Bills, DecisionLog)
-                       ▲
-                       │ (HTTP / Tools Loop)
-                       ▼
-             [ Strands Agent Runtime ]
-              (Powered by Amazon Bedrock)
-                 ├─ check_due_soon()
-                 ├─ detect_anomaly()
-                 ├─ detect_unused_subscription()
-                 ├─ draft_notification()
-                 ├─ draft_cancellation_email()
-                 └─ log_decision()
-                       ▲
-                       │
-                       ▼
-            [ React + TypeScript UI ]
-             ├─ 📊 Dashboard (Stat cards & bills table)
-             ├─ 🚨 Needs Your Attention (Approve/Reject drafts)
-             ├─ 🤖 Agent Activity Log (Audit trail feed)
-             └─ ➕ Add Bill & CSV Import
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           React + TypeScript Frontend UI                        │
+│  ├─ 📊 Dashboard (Overview, Health Score, 30-Day Forecast, Category Shift)      │
+│  ├─ 🚨 Needs Attention & Insights (Priority-Tiered Alerts & Action Triggers)    │
+│  ├─ 📅 Smart Financial Calendar (Daily Rollup Grid & Peak Day Highlighting)     │
+│  ├─ 🔮 What-If Simulator (Interactive Toggle Budget Reduction & Score Gain)     │
+│  ├─ 💬 AI Assistant Copilot (Context-Aware Conversational Financial Advisor)   │
+│  ├─ 📄 Smart Ingest & AI Scanner (Receipt OCR & Mailbox Sync)                   │
+│  └─ 🤖 Agent Audit Log (Structured Signal Chips & Human-in-the-Loop Review)     │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │ REST API
+┌────────────────────────────────────────▼────────────────────────────────────────┐
+│                              Django REST Framework                              │
+│  ├─ Phase 0: Incremental Schema (Bill, PriceHistory, AIInsight, DecisionLog)    │
+│  ├─ Phase 1: Dashboard Summary, Price Increase Detection, 30-Day Prediction     │
+│  ├─ Phase 2: Recurring Frequency Detector, Zombie Subscriptions, Anomalies      │
+│  ├─ Phase 3: Explainable Agent Reasoning, Assistant Chat, What-If Simulator     │
+│  ├─ Phase 4: AI Receipt / Statement Scanner, Smart Email Stream Ingestion       │
+│  └─ Phase 5: Composite Financial Health & Risk Score Engine (0-100)             │
+└────────────────────────────────────────┬────────────────────────────────────────┘
+                                         │
+┌────────────────────────────────────────▼────────────────────────────────────────┐
+│                        Strands Agent & Autonomous Tools                         │
+│  (Powered by Amazon Bedrock Claude 3.5 Sonnet / Local Analytical Fallback)      │
+│  ├─ ingest_bill()                   ├─ detect_unused_subscription()             │
+│  ├─ check_due_soon()                ├─ draft_notification()                     │
+│  ├─ detect_anomaly()                ├─ draft_cancellation_email()               │
+│  └─ log_decision(signals=[...])                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## ⚡ Tech Stack
+## ⚡ Key Highlights by Phase
 
-| Layer | Technology |
-|---|---|
-| **Backend & ORM** | Python 3.12, Django 6, Django REST Framework |
-| **Agent Runtime** | Strands Agents SDK + Amazon Bedrock (`Claude 3.5 Sonnet`) |
-| **Frontend UI** | React 18, Vite, TypeScript, TanStack React Query, React Router |
-| **Database** | SQLite (dev) / PostgreSQL (production ready) |
-| **Agent Trigger** | Background execution via REST API (`POST /api/agent/run/`) & CLI (`python run_agent.py`) |
+### Phase 0 — Incremental Schema
+- **`Bill`**: Added `merchant`, `confidence_score` (recurring detection confidence), `usage_frequency`.
+- **`PriceHistory`**: Automatically captures historical price snapshots for trend & z-score anomaly analysis.
+- **`AIInsight`**: User-scoped actionable insight cards with priority tiers (`critical`, `important`, `insight`, `recommendation`).
+- **`DecisionLog`**: Transparent audit trail with structured factor signals (e.g., `[Signals: usage_idle: 74d | price_jump: +18% | confidence: 96%]`).
+
+### Phase 1 — Quick Wins
+- **Dashboard Rollup (`/api/dashboard/summary/`)**: Aggregates normalized monthly commitments across cycles (weekly, monthly, yearly), category distributions, and upcoming 7-day obligations.
+- **Price Increase Detection**: Flags bills where current amount > `previous_amount` with % change and monthly budget impact.
+- **30-Day Cashflow Forecast**: Predicts total outflow grouped by category and recurrence.
+- **Smart Financial Calendar (`/api/dashboard/calendar/`)**: Groups obligations by date for interactive monthly grid rendering and peak-day identification.
+
+### Phase 2 — Detection & Anomaly Logic
+- **Recurring Payment Detection**: Groups historical charges by merchant similarity, infers frequency (weekly/monthly/yearly), and scores detection confidence.
+- **Zombie Subscription Detector**: Rule-based detection flagging inactive subscriptions (>45 days idle) and calculating potential annual savings.
+- **Spending Anomaly Engine**: Calculates rolling mean, stddev, and z-score to catch sudden price spikes.
+
+### Phase 3 — Agent-Powered Copilot & What-If Simulator
+- **Explainable AI Reasoning**: Decision logs present structured factor signals instead of vague text.
+- **AI Financial Assistant Chat (`/api/agent/chat/`)**: Conversational advisor with real-time access to user bills, health scores, and suggested follow-ups.
+- **What-If Simulator (`/api/dashboard/what-if/`)**: Live simulation of budget reduction and health score improvement when cancelling candidate bills.
+
+### Phase 4 — Ingestion Upgrades
+- **AI Receipt / Bill Scanner (`/api/bills/scan/`)**: Parses receipt text, PDFs, or images into structured bill fields.
+- **Smart Email Bill Detection (`/api/bills/scan-email/`)**: Scans mailbox streams for known recurring vendor patterns (e.g., Adobe, GitHub, ConEd).
+
+### Phase 5 — Scores, Priority Tiers & Polish
+- **Financial Health & Risk Score (0-100)**: Evaluates subscription burden, zombie waste, unreviewed price spikes, and upcoming cashflow pressures.
+- **Priority-Tiered Alerts**: Interactive triage in "Needs Attention" with 1-click cancellation drafting and dismissal.
 
 ---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Python 3.11+
-- Node.js 18+ & npm
-- Git
-
-### 1. Clone & Setup Backend Virtual Environment
+### 1. Backend Setup
 
 ```bash
+# Clone repository
 git clone https://github.com/Lancheba/Billwatch.git
 cd Billwatch
 
+# Setup virtual environment
 python -m venv venv
 # Windows (PowerShell):
 .\venv\Scripts\Activate.ps1
 # macOS / Linux:
 source venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
-```
 
-### 2. Configure Environment
-
-Copy `.env.example` to `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Set your AWS credentials for Amazon Bedrock:
-```env
-AWS_DEFAULT_REGION=us-east-1
-AWS_ACCESS_KEY_ID=your-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-key
-BILLWATCH_API_URL=http://127.0.0.1:8000/api
-```
-*(Or set `ANTHROPIC_API_KEY` to run Claude directly)*
-
-### 3. Run Migrations & Seed Demo Data
-
-```bash
+# Run migrations & seed demo dataset
 python manage.py migrate
 python manage.py seed_demo_data --flush
-```
 
-Demo bills created:
-| Bill | Scenario | Agent Action |
-|---|---|---|
-| Electric Bill | Normal monthly utility | Auto-handled silently |
-| Internet (Comcast) | Normal monthly utility | Auto-handled silently |
-| Spotify Premium | Active subscription | Auto-handled silently |
-| Amazon Prime | Active subscription | Auto-handled silently |
-| **Netflix** | **Price increase \$15.99 → \$17.99** | **Anomaly detected** → Notification drafted |
-| **Gym Fitness App** | **Unused >90 days** | **Dormant sub** → Cancellation email drafted |
-| **Water & Sewage** | **Due in 2 days** | **Due soon** → Alert notification drafted |
-
-### 4. Start Django Backend Server
-
-```bash
+# Start Django backend server
 python manage.py runserver
 ```
 
 - API Base: `http://127.0.0.1:8000/api/`
-- Django Admin: `http://127.0.0.1:8000/admin/`
+- Admin Portal: `http://127.0.0.1:8000/admin/`
 
-### 5. Start React Frontend
+### 2. Frontend Setup
 
-In a separate terminal window:
+In a separate terminal:
 
 ```bash
 cd frontend
@@ -129,129 +120,45 @@ Open **`http://localhost:5173/`** in your browser.
 
 ---
 
-## 🤖 Running the Agent
-
-### Option A — From the React Web UI
-Click the **"▶ Run Agent"** button in the sidebar. The agent will run asynchronously in a background thread and update the Activity Log and Needs Attention screens in real-time.
-
-### Option B — Via CLI
-```bash
-python run_agent.py --days 7
-```
-
-### Option C — Via REST API
-```bash
-curl -X POST http://127.0.0.1:8000/api/agent/run/ \
-     -H "Content-Type: application/json" \
-     -d '{"days": 7}'
-```
-
----
-
-## 🖥️ Frontend Screens
-
-1. **Dashboard (`/`):** Summary metrics (Total spend, Active, Flagged), full bills table with status indicators and due soon badges.
-2. **Needs Your Attention (`/attention`):** Human-in-the-loop triage center. Displays agent-generated draft cancellation emails and alerts with **✓ Approve** and **✗ Reject** action buttons.
-3. **Agent Activity Log (`/log`):** Chronological transparency feed detailing every decision, showing what was quietly auto-handled vs what was surfaced with reasoning.
-4. **Add Bill (`/add`):** Manual bill entry form + bulk CSV statement import.
-
----
-
-## 🛠️ Strands Agent Tools
-
-Each tool is decorated with `@tool` in `agent/tools.py`:
-
-| Tool | Purpose |
-|---|---|
-| `ingest_bill(raw_text)` | Parses unstructured text/JSON into structured bill records |
-| `check_due_soon(days=7)` | Fetches bills coming due within the specified time window |
-| `detect_anomaly(bill)` | Compares current amount with baseline; flags increases >5% |
-| `detect_unused_subscription(bill)` | Detects subscriptions dormant for 60+ days |
-| `draft_notification(bill, reason)` | Formats human-readable alert notifications |
-| `draft_cancellation_email(subscription)` | Drafts complete cancellation emails ready for user review |
-| `log_decision(bill_id, action, reasoning, draft_content)` | Records structured audit log to `DecisionLog` |
-
----
-
 ## 📡 REST API Reference
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `GET` | `/api/bills/` | List all bills |
-| `POST` | `/api/bills/` | Create a bill |
-| `GET` | `/api/bills/<id>/` | Retrieve bill detail |
-| `PATCH` | `/api/bills/<id>/` | Update bill |
-| `DELETE` | `/api/bills/<id>/` | Delete bill |
-| `GET` | `/api/bills/due-soon/?days=7` | Filter bills due within N days |
-| `POST` | `/api/bills/import/` | Bulk CSV statement import |
+| `GET` | `/api/dashboard/summary/` | Normalized monthly spend, due soon, price increases, 30-day forecast, health score |
+| `GET` | `/api/dashboard/calendar/` | Monthly calendar data with daily totals & highest expense day |
+| `POST` | `/api/dashboard/what-if/` | Simulates budget savings & score changes for excluded bills |
+| `POST` | `/api/agent/chat/` | Conversational financial copilot query with real-time bill context |
+| `POST` | `/api/agent/run/` | Trigger autonomous background watcher cycle |
+| `GET` | `/api/insights/` | Retrieve user AI insights filtered by priority |
+| `POST` | `/api/insights/<id>/dismiss/` | Dismiss an AI insight |
+| `POST` | `/api/insights/<id>/act/` | Trigger 1-click action (draft cancellation email, cancel bill) |
+| `POST` | `/api/bills/detect-recurring/` | Run recurring payment detection across bills |
+| `POST` | `/api/bills/detect-zombies/` | Run zombie subscription detection |
+| `POST` | `/api/bills/detect-anomalies/` | Run price surge & anomaly detection |
+| `POST` | `/api/bills/scan/` | AI receipt & invoice text scanner |
+| `POST` | `/api/bills/scan-email/` | Email invoice scanner simulation |
+| `GET/POST` | `/api/bills/` | Bills CRUD |
 | `GET` | `/api/decisions/` | Retrieve agent decision audit logs |
-| `POST` | `/api/decisions/<id>/approve/` | Approve drafted action (cancels sub if applicable) |
+| `POST` | `/api/decisions/<id>/approve/` | Approve drafted human-in-the-loop action |
 | `POST` | `/api/decisions/<id>/reject/` | Reject drafted action |
-| `POST` | `/api/agent/run/` | Trigger agent watcher cycle |
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & Verification
 
-Run backend tests:
 ```bash
+# Run Django test suite (17 comprehensive tests across all phases)
 python manage.py test
-```
 
-Build frontend bundle:
-```bash
+# Build frontend production bundle
 cd frontend
 npm run build
 ```
 
 ---
 
-## 📂 Project Structure
-
-```
-Billwatch/
-├── agent/
-│   ├── __init__.py
-│   └── tools.py              # 7 Strands @tool definitions
-├── bills/
-│   ├── management/commands/
-│   │   └── seed_demo_data.py # Seeder with 3 flagged scenarios
-│   ├── migrations/
-│   ├── admin.py              # Django admin configuration
-│   ├── models.py             # Bill, Subscription, DecisionLog
-│   ├── serializers.py        # DRF Serializers
-│   ├── tests.py              # Automated test suite
-│   ├── urls.py               # API routing
-│   └── views.py              # ViewSets & AgentRunView
-├── billwatch_backend/
-│   ├── settings.py           # DRF, CORS, Database config
-│   ├── urls.py
-│   └── wsgi.py
-├── frontend/
-│   ├── src/
-│   │   ├── pages/
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── NeedsAttention.tsx
-│   │   │   ├── ActivityLog.tsx
-│   │   │   └── AddBill.tsx
-│   │   ├── api.ts            # Axios client & typed endpoints
-│   │   ├── utils.ts          # Badges & formatting helpers
-│   │   ├── App.tsx           # Layout & navigation
-│   │   └── index.css         # Clean utility styling
-│   ├── package.json
-│   └── vite.config.ts
-├── run_agent.py              # CLI agent runner (Bedrock/Anthropic)
-├── requirements.txt
-├── DEMO_SCRIPT.md            # Video presentation script
-├── SUBMISSION.md             # Devpost submission details
-├── LICENSE                   # MIT License
-└── README.md
-```
-
----
-
 ## 🏆 Hackathon Submission Details
 - **Track:** Everyday Agents
-- **Demo Video Script:** See [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md)
-- **Submission Overview:** See [`SUBMISSION.md`](SUBMISSION.md)
 - **License:** MIT
+- **Repository:** [https://github.com/Lancheba/Billwatch](https://github.com/Lancheba/Billwatch)
+
