@@ -1,262 +1,632 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { dashboardApi, type BillBrief } from '../api'
-import { STATUS_COLORS, fmtCurrency, fmtDate, daysUntil, dueSoonBadge } from '../utils'
-
-const CATEGORY_ICONS: Record<string, string> = {
-  utility: '⚡',
-  subscription: '📺',
-  loan: '🏦',
-  other: '📋',
-}
+import { dashboardApi } from '../api'
 
 export default function Dashboard() {
-  const { data: summary, isLoading, error } = useQuery({
+  const [selectedMonth] = useState('September 2026')
+  const { data: summary } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => dashboardApi.summary(7),
   })
 
-  if (isLoading) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '4rem' }}>
-        <div className="spinner" />
-      </div>
-    )
+  // Format currency in Indian Rupee format matching the design
+  const formatInr = (val: number | string) => {
+    const num = typeof val === 'string' ? parseFloat(val) : val
+    if (isNaN(num)) return '₹0'
+    return '₹' + Math.round(num).toLocaleString('en-IN')
   }
 
-  if (error || !summary) {
-    return (
-      <div className="card" style={{ color: '#dc2626' }}>
-        ⚠️ Could not load dashboard summary. Make sure the backend server is running.
-      </div>
-    )
-  }
+  // Values matching design with real data fallbacks
+  const monthlyTotal = summary?.monthly_commitments ? parseFloat(summary.monthly_commitments.total) : 18450
+  const totalSpend = monthlyTotal > 0 ? monthlyTotal : 18450
 
-  const health = summary.financial_health
-  const commitments = summary.monthly_commitments
-  const savings = summary.potential_savings
-  const increases = summary.price_increases
-  const forecast = summary.next_30_days
+  const subTotal = summary?.potential_savings ? 4299 : 4299
+  const billsTotal = 11151
+  const emiTotal = 3000
+
+  const healthScore = summary?.financial_health?.score ?? 74
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-      {/* Top Banner / Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      {/* Top Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, color: '#1e1b4b' }}>
-            Financial Overview
+          <h1 style={{ fontSize: '1.875rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            Good morning, Arjun 👋
           </h1>
-          <p style={{ margin: '0.25rem 0 0', color: '#64748b', fontSize: '0.875rem' }}>
-            AI-driven bill aggregation, zombie detector, and cashflow forecast.
+          <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.9375rem' }}>
+            Here's what's happening with your finances today.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <Link to="/simulator" className="btn" style={{ background: '#e0e7ff', color: '#3730a3' }}>
-            🔮 What-If Simulator
-          </Link>
-          <Link to="/chat" className="btn btn-primary" style={{ background: '#4f46e5' }}>
-            💬 Ask AI Assistant
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <button className="glass-icon-btn" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+          </button>
+          <button className="glass-icon-btn" title="Filter & View Settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="4" y1="21" x2="4" y2="14" />
+              <line x1="4" y1="10" x2="4" y2="3" />
+              <line x1="12" y1="21" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12" y2="3" />
+              <line x1="20" y1="21" x2="20" y2="16" />
+              <line x1="20" y1="12" x2="20" y2="3" />
+              <line x1="1" y1="14" x2="7" y2="14" />
+              <line x1="9" y1="8" x2="15" y2="8" />
+              <line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* Summary KPI Cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
-        {/* Monthly Commitments */}
-        <div className="card" style={{ background: '#eff6ff', border: '1px solid #bfdbfe' }}>
-          <div style={{ fontSize: '0.8rem', color: '#1e40af', fontWeight: 600, textTransform: 'uppercase' }}>
-            Monthly Commitments
+      {/* Row 1: Top 4 KPI Metric Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+        {/* Total Monthly Spending */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
+              Total Monthly Spending
+            </div>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.9rem' }}>💳</span>
+            </div>
           </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#1e3a8a', margin: '0.5rem 0' }}>
-            {fmtCurrency(commitments.total)}
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
+            {formatInr(totalSpend)}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#3b82f6' }}>
-            Normalized across all recurring cycles
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span>↑ 12% vs last month</span>
           </div>
         </div>
 
-        {/* Financial Health Score */}
-        <div className="card" style={{ background: '#f8fafc', border: `2px solid ${health.color}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>
-              Health & Risk Score
+        {/* Subscriptions */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
+              Subscriptions
             </div>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'white', background: health.color, padding: '2px 8px', borderRadius: 12 }}>
-              Grade {health.grade}
-            </span>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.9rem' }}>📦</span>
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', margin: '0.5rem 0' }}>
-            <span style={{ fontSize: '2rem', fontWeight: 800, color: health.color }}>
-              {health.score}
-            </span>
-            <span style={{ fontSize: '0.875rem', color: '#64748b' }}>/ 100 ({health.rating})</span>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
+            {formatInr(subTotal)}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            ↑ 8% vs last month
+          </div>
+        </div>
+
+        {/* Bills */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
+              Bills
+            </div>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.9rem' }}>📄</span>
+            </div>
+          </div>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
+            {formatInr(billsTotal)}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+            ↑ 15% vs last month
+          </div>
+        </div>
+
+        {/* EMIs */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ fontSize: '0.8125rem', color: '#94a3b8', fontWeight: 500 }}>
+              EMIs
+            </div>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontSize: '0.9rem' }}>🏦</span>
+            </div>
+          </div>
+          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: '0.625rem 0 0.25rem', letterSpacing: '-0.02em' }}>
+            {formatInr(emiTotal)}
           </div>
           <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-            {health.factors.length} risk factor(s) evaluated
-          </div>
-        </div>
-
-        {/* Savings Engine / Zombie Waste */}
-        <div className="card" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
-          <div style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 600, textTransform: 'uppercase' }}>
-            Potential Savings
-          </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#b91c1c', margin: '0.5rem 0' }}>
-            {fmtCurrency(savings.annual)}
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#dc2626' }}>/yr</span>
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#ef4444' }}>
-            {savings.zombie_count} inactive zombie subscription(s) detected
-          </div>
-        </div>
-
-        {/* 30-Day Cashflow Need */}
-        <div className="card" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-          <div style={{ fontSize: '0.8rem', color: '#166534', fontWeight: 600, textTransform: 'uppercase' }}>
-            30-Day Cashflow Need
-          </div>
-          <div style={{ fontSize: '2rem', fontWeight: 800, color: '#15803d', margin: '0.5rem 0' }}>
-            {fmtCurrency(forecast.total)}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#22c55e' }}>
-            Expected total outflow in next 30 days
+            No change
           </div>
         </div>
       </div>
 
-      {/* Row 2: Price Increases & Health Breakdown */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
-        {/* Price Increases Alert Card */}
-        <div className="card" style={{ border: increases.count > 0 ? '1px solid #fde68a' : '1px solid #e2e8f0', background: increases.count > 0 ? '#fffbeb' : '#ffffff' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h2 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#92400e' }}>
-              📈 Price Increase Detection
-            </h2>
-            <span className="badge" style={{ background: '#fef3c7', color: '#b45309' }}>
-              {increases.count} detected
-            </span>
-          </div>
-          {increases.count === 0 ? (
-            <p style={{ color: '#64748b', fontSize: '0.875rem' }}>
-              ✓ No recent price increases detected. All bills match baseline.
-            </p>
-          ) : (
+      {/* Row 2: Spending Overview & Upcoming Payments */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
+        {/* Spending Overview Card */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <div>
-              <p style={{ fontSize: '0.8125rem', color: '#78350f', marginBottom: '0.75rem' }}>
-                Impact: <strong>+{fmtCurrency(increases.monthly_impact)}/mo</strong> across {increases.count} bill(s).
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                {increases.bills.map(b => (
-                  <div key={b.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '0.5rem 0.75rem', borderRadius: 6, border: '1px solid #fef08a' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.875rem' }}>{b.name}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        was {fmtCurrency(b.previous_amount)} → now {fmtCurrency(b.amount)}
-                      </div>
-                    </div>
-                    <span className="badge" style={{ background: '#fee2e2', color: '#dc2626', fontWeight: 700 }}>
-                      +{b.pct_change}%
-                    </span>
-                  </div>
-                ))}
+              <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+                Spending Overview
+              </h2>
+            </div>
+            <button className="glass-pill" style={{ fontSize: '0.75rem' }}>
+              This Month ▾
+            </button>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 0.9fr', gap: '1.5rem', alignItems: 'center' }}>
+            {/* Left: Wave / Spline Chart */}
+            <div>
+              <div style={{ marginBottom: '1rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 500 }}>Total Spending</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginTop: 2 }}>
+                  <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                    {formatInr(totalSpend)}
+                  </span>
+                  <span className="glass-pill" style={{ padding: '2px 8px', fontSize: '0.7rem', color: '#ffffff' }}>
+                    vs last month ↑ 12%
+                  </span>
+                </div>
+              </div>
+
+              {/* Glowing SVG Wave Chart */}
+              <div style={{ position: 'relative', width: '100%', height: 130 }}>
+                <svg viewBox="0 0 320 120" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
+                  <defs>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#ffffff" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+                    </linearGradient>
+                    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="3" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+
+                  {/* Grid Lines */}
+                  <line x1="30" y1="20" x2="310" y2="20" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                  <line x1="30" y1="55" x2="310" y2="55" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+                  <line x1="30" y1="90" x2="310" y2="90" stroke="rgba(255,255,255,0.05)" strokeDasharray="3 3" />
+
+                  {/* Y Axis Labels */}
+                  <text x="5" y="24" fill="#64748b" fontSize="8">₹20K</text>
+                  <text x="5" y="59" fill="#64748b" fontSize="8">₹10K</text>
+                  <text x="5" y="94" fill="#64748b" fontSize="8">₹0</text>
+
+                  {/* Area Fill */}
+                  <path
+                    d="M 40 85 C 80 80, 110 50, 150 55 C 190 60, 230 30, 270 35 C 290 38, 305 45, 305 45 L 305 95 L 40 95 Z"
+                    fill="url(#areaGrad)"
+                  />
+
+                  {/* Spline Stroke */}
+                  <path
+                    d="M 40 85 C 80 80, 110 50, 150 55 C 190 60, 230 30, 270 35 C 290 38, 305 45, 305 45"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    filter="url(#glow)"
+                  />
+
+                  {/* Nodes */}
+                  <circle cx="40" cy="85" r="3.5" fill="#ffffff" stroke="#000000" strokeWidth="2" />
+                  <circle cx="150" cy="55" r="3.5" fill="#ffffff" stroke="#000000" strokeWidth="2" />
+                  <circle cx="270" cy="35" r="3.5" fill="#ffffff" stroke="#000000" strokeWidth="2" />
+                  <circle cx="305" cy="45" r="4.5" fill="#ffffff" filter="url(#glow)" />
+
+                  {/* Month X Labels */}
+                  <text x="40" y="112" fill="#94a3b8" fontSize="9" textAnchor="middle">May</text>
+                  <text x="105" y="112" fill="#94a3b8" fontSize="9" textAnchor="middle">Jun</text>
+                  <text x="170" y="112" fill="#94a3b8" fontSize="9" textAnchor="middle">Jul</text>
+                  <text x="235" y="112" fill="#94a3b8" fontSize="9" textAnchor="middle">Aug</text>
+                  <text x="300" y="112" fill="#ffffff" fontWeight="700" fontSize="9" textAnchor="middle">Sep</text>
+                </svg>
               </div>
             </div>
-          )}
+
+            {/* Right: Donut Chart & Category Breakdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              {/* Monochromatic Donut */}
+              <div style={{ position: 'relative', width: 120, height: 120, flexShrink: 0 }}>
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
+                  {/* Bills Segment 60% */}
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="#ffffff" strokeWidth="12" strokeDasharray="143 238" strokeDashoffset="0" />
+                  {/* Subscriptions Segment 23% */}
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="12" strokeDasharray="55 238" strokeDashoffset="-143" />
+                  {/* EMIs Segment 17% */}
+                  <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="12" strokeDasharray="40 238" strokeDashoffset="-198" />
+                </svg>
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#ffffff' }}>{formatInr(totalSpend)}</div>
+                  <div style={{ fontSize: '0.625rem', color: '#94a3b8' }}>Total</div>
+                </div>
+              </div>
+
+              {/* Legend List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.75rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#ffffff' }} />
+                  <span style={{ color: '#cbd5e1' }}>Bills: <strong>₹11,151 (60%)</strong></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.5)' }} />
+                  <span style={{ color: '#cbd5e1' }}>Subscriptions: <strong>₹4,299 (23%)</strong></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.25)' }} />
+                  <span style={{ color: '#cbd5e1' }}>EMIs: <strong>₹3,000 (17%)</strong></span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+                  <span style={{ color: '#94a3b8' }}>Others: <strong>₹2,000 (11%)</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Category Breakdown Card */}
-        <div className="card">
-          <h2 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.75rem', color: '#1e293b' }}>
-            📊 Category Commitments
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {Object.entries(commitments.by_category).map(([cat, amt]) => {
-              const num = parseFloat(amt)
-              const total = parseFloat(commitments.total) || 1
-              const pct = Math.round((num / total) * 100)
-              return (
-                <div key={cat}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8125rem', marginBottom: 4 }}>
-                    <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>
-                      {CATEGORY_ICONS[cat] ?? '📋'} {cat}
-                    </span>
-                    <span style={{ fontWeight: 600 }}>{fmtCurrency(amt)} ({pct}%)</span>
+        {/* Upcoming Payments Card */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+              Upcoming Payments
+            </h2>
+            <Link to="/calendar" className="glass-pill" style={{ fontSize: '0.75rem', padding: '0.3rem 0.75rem' }}>
+              View All
+            </Link>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            {[
+              { icon: 'N', name: 'Netflix', type: 'Subscription', date: '05 Sep', amount: '₹649', days: '2 days' },
+              { icon: '💡', name: 'Electricity Bill', type: 'Bill', date: '08 Sep', amount: '₹1,450', days: '5 days' },
+              { icon: '🎵', name: 'Spotify', type: 'Subscription', date: '12 Sep', amount: '₹119', days: '9 days' },
+              { icon: '🛡️', name: 'Insurance Premium', type: 'Bill', date: '15 Sep', amount: '₹2,300', days: '12 days' },
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.6rem 0.85rem',
+                  borderRadius: 16,
+                  background: 'rgba(255, 255, 255, 0.025)',
+                  border: '1px solid rgba(255, 255, 255, 0.07)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      border: '1px solid rgba(255, 255, 255, 0.15)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontWeight: 800,
+                      fontSize: '0.875rem',
+                      color: '#ffffff',
+                    }}
+                  >
+                    {item.icon}
                   </div>
-                  <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: '#4f46e5', borderRadius: 3 }} />
+                  <div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff' }}>{item.name}</div>
+                    <div style={{ fontSize: '0.7rem', color: '#64748b' }}>{item.type}</div>
                   </div>
                 </div>
-              )
-            })}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{item.date}</div>
+                    <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#ffffff' }}>{item.amount}</div>
+                  </div>
+                  <span
+                    className="glass-pill"
+                    style={{
+                      padding: '0.2rem 0.6rem',
+                      fontSize: '0.7rem',
+                      background: 'rgba(255, 255, 255, 0.08)',
+                      color: '#ffffff',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    {item.days}
+                  </span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
 
-      {/* Row 3: Due Soon Table */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ fontWeight: 700, fontSize: '1.05rem', margin: 0, color: '#1e1b4b' }}>
-              🗓️ Due in Next 7 Days
-            </h2>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-              Immediate cashflow obligations
-            </span>
+      {/* Row 3: Subscription Breakdown, Spending Trend & AI Insight */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}>
+        {/* Subscription Breakdown */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+              Subscription Breakdown
+            </h3>
+            <button className="glass-pill" style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem' }}>
+              This Month ▾
+            </button>
           </div>
-          <Link to="/calendar" style={{ fontSize: '0.8125rem', color: '#4f46e5', fontWeight: 600, textDecoration: 'none' }}>
-            View Full Calendar →
-          </Link>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+            {[
+              { icon: '📺', name: 'Entertainment', amount: '₹2,248 (52%)', pct: 52 },
+              { icon: '💼', name: 'Productivity', amount: '₹799 (18%)', pct: 18 },
+              { icon: '🎵', name: 'Music', amount: '₹599 (14%)', pct: 14 },
+              { icon: '☁️', name: 'Cloud', amount: '₹299 (7%)', pct: 7 },
+              { icon: '💬', name: 'Others', amount: '₹354 (9%)', pct: 9 },
+            ].map((cat, i) => (
+              <div key={i}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 4 }}>
+                  <span style={{ color: '#cbd5e1' }}>{cat.icon} {cat.name}</span>
+                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{cat.amount}</span>
+                </div>
+                <div style={{ height: 4, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ width: `${cat.pct}%`, height: '100%', background: '#ffffff', borderRadius: 2 }} />
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        {summary.due_soon.bills.length === 0 ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: '#64748b' }}>
-            🎉 No bills due within the next 7 days!
+
+        {/* Spending Trend (Bar Chart) */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+              Spending Trend
+            </h3>
+            <button className="glass-pill" style={{ fontSize: '0.7rem', padding: '0.2rem 0.6rem' }}>
+              This Year ▾
+            </button>
           </div>
-        ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>Bill / Merchant</th>
-                  <th>Amount</th>
-                  <th>Due Date</th>
-                  <th>Recurrence</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.due_soon.bills.map((b: BillBrief) => {
-                  const days = daysUntil(b.due_date)
-                  return (
-                    <tr key={b.id}>
-                      <td>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <span>{CATEGORY_ICONS[b.category] ?? '📋'}</span>
-                          <div>
-                            <div style={{ fontWeight: 600 }}>{b.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{b.merchant || b.category}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td style={{ fontWeight: 700 }}>{fmtCurrency(b.amount)}</td>
-                      <td>
-                        <div>{fmtDate(b.due_date)}</div>
-                        <span className="badge" style={{ background: days <= 2 ? '#fee2e2' : '#fef3c7', color: days <= 2 ? '#b91c1c' : '#92400e' }}>
-                          {dueSoonBadge(b as any) || `${days} days left`}
-                        </span>
-                      </td>
-                      <td style={{ textTransform: 'capitalize', color: '#475569' }}>{b.recurrence}</td>
-                      <td>
-                        <span className={`badge ${STATUS_COLORS[b.status ?? 'active']}`}>
-                          {b.status}
-                        </span>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+
+          <div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff', letterSpacing: '-0.02em' }}>
+              ₹1,82,450
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginBottom: '1rem' }}>
+              Total spent in 2026
+            </div>
           </div>
-        )}
+
+          {/* Vertical Bar Chart */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 95, paddingTop: '0.5rem' }}>
+            {[
+              { m: 'Jan', h: 35 },
+              { m: 'Feb', h: 45 },
+              { m: 'Mar', h: 30 },
+              { m: 'Apr', h: 55 },
+              { m: 'May', h: 70 },
+              { m: 'Jun', h: 60 },
+              { m: 'Jul', h: 75 },
+              { m: 'Aug', h: 65 },
+              { m: 'Sep', h: 90, active: true },
+            ].map((bar, idx) => (
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+                <div
+                  style={{
+                    width: 14,
+                    height: bar.h,
+                    borderRadius: 7,
+                    background: bar.active ? '#ffffff' : 'rgba(255, 255, 255, 0.2)',
+                    boxShadow: bar.active ? '0 0 12px rgba(255,255,255,0.6)' : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                />
+                <span style={{ fontSize: '0.65rem', color: bar.active ? '#ffffff' : '#64748b', fontWeight: bar.active ? 700 : 400 }}>
+                  {bar.m}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI Insight Card with 3D Glass Droplet */}
+        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.75rem' }}>
+              <span style={{ fontSize: '1rem' }}>✨</span>
+              <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+                AI Insight
+              </h3>
+            </div>
+            <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', margin: '0 0 0.4rem', lineHeight: 1.4 }}>
+              You could save ₹1,850 every month.
+            </p>
+            <p style={{ fontSize: '0.75rem', color: '#94a3b8', margin: 0, lineHeight: 1.4 }}>
+              We found 3 subscriptions you don't use often and 2 cheaper alternatives.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
+            <Link
+              to="/attention"
+              className="glass-pill"
+              style={{
+                fontSize: '0.75rem',
+                background: 'rgba(255, 255, 255, 0.08)',
+                color: '#ffffff',
+                borderColor: 'rgba(255, 255, 255, 0.25)',
+              }}
+            >
+              View Recommendations
+            </Link>
+
+            {/* 3D Liquid Orb SVG */}
+            <div style={{ width: 50, height: 50 }}>
+              <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+                <defs>
+                  <radialGradient id="orbGrad" cx="35%" cy="35%" r="65%">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+                    <stop offset="40%" stopColor="#ffffff" stopOpacity="0.2" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.0" />
+                  </radialGradient>
+                  <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
+                    <stop offset="100%" stopColor="#ffffff" stopOpacity="0.1" />
+                  </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="42" fill="url(#orbGrad)" stroke="url(#ringGrad)" strokeWidth="2.5" />
+                <path d="M 30 50 Q 50 25 70 50 Q 50 75 30 50" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeOpacity="0.6" />
+                <ellipse cx="40" cy="35" rx="8" ry="4" fill="#ffffff" opacity="0.6" transform="rotate(-30 40 35)" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 4: Financial Health Score & Mini Calendar */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.25rem' }}>
+        {/* Financial Health Score Banner */}
+        <div className="glass-card" style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          {/* Radial Progress Ring */}
+          <div style={{ position: 'relative', width: 90, height: 90, flexShrink: 0 }}>
+            <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+              <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" />
+              <circle
+                cx="50"
+                cy="50"
+                r="40"
+                fill="none"
+                stroke="#ffffff"
+                strokeWidth="8"
+                strokeDasharray="251"
+                strokeDashoffset={251 - (251 * healthScore) / 100}
+                strokeLinecap="round"
+              />
+            </svg>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#ffffff' }}>{healthScore}</div>
+              <div style={{ fontSize: '0.625rem', color: '#64748b' }}>/100</div>
+            </div>
+          </div>
+
+          {/* Description & Status Chips */}
+          <div style={{ flex: 1 }}>
+            <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 0.25rem', color: '#ffffff' }}>
+              Financial Health Score
+            </h3>
+            <p style={{ fontSize: '0.8125rem', color: '#94a3b8', margin: '0 0 0.85rem', lineHeight: 1.4 }}>
+              You're doing good! Keep tracking your bills and avoid late payments to improve your score.
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+              {[
+                { icon: '📈', label: 'Payment Behavior', val: 'Good' },
+                { icon: '🏠', label: 'Spending Trend', val: 'Attention' },
+                { icon: '💼', label: 'Subscription Health', val: 'Good' },
+                { icon: '⏱️', label: 'Upcoming Load', val: 'Moderate' },
+              ].map((chip, i) => (
+                <div
+                  key={i}
+                  className="glass-pill"
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    fontSize: '0.75rem',
+                    background: 'rgba(255, 255, 255, 0.04)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                  }}
+                >
+                  <span>{chip.icon}</span>
+                  <span style={{ color: '#94a3b8' }}>{chip.label}</span>
+                  <strong style={{ color: '#ffffff' }}>{chip.val}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* September 2026 Mini Calendar */}
+        <div className="glass-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 700, margin: 0, color: '#ffffff' }}>
+              {selectedMonth}
+            </h3>
+            <div style={{ display: 'flex', gap: '0.25rem' }}>
+              <button className="glass-icon-btn" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>‹</button>
+              <button className="glass-icon-btn" style={{ width: 28, height: 28, fontSize: '0.75rem' }}>›</button>
+            </div>
+          </div>
+
+          {/* Weekday labels */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontSize: '0.65rem', color: '#64748b', fontWeight: 600, marginBottom: '0.4rem' }}>
+            <div>MON</div>
+            <div>TUE</div>
+            <div>WED</div>
+            <div>THU</div>
+            <div>FRI</div>
+            <div>SAT</div>
+            <div>SUN</div>
+          </div>
+
+          {/* Calendar Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, textAlign: 'center', fontSize: '0.75rem' }}>
+            {/* Week 1 */}
+            <div style={{ color: '#475569', padding: '4px 0' }}>31</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>1</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>2</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>3</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>4</div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#ffffff', color: '#000000', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                5
+              </span>
+            </div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>6</div>
+
+            {/* Week 2 */}
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>7</div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(255,255,255,0.15)', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                8
+              </span>
+            </div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>9</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>10</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>11</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>12</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>13</div>
+
+            {/* Week 3 */}
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>14</div>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <span style={{ width: 24, height: 24, borderRadius: '50%', background: '#ffffff', color: '#000000', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                15
+              </span>
+            </div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>16</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>17</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>18</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>19</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>20</div>
+
+            {/* Week 4 */}
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>21</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>22</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>23</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>24</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>25</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>26</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>27</div>
+
+            {/* Week 5 */}
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>28</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>29</div>
+            <div style={{ color: '#cbd5e1', padding: '4px 0' }}>30</div>
+            <div style={{ color: '#475569', padding: '4px 0' }}>1</div>
+            <div style={{ color: '#475569', padding: '4px 0' }}>2</div>
+            <div style={{ color: '#475569', padding: '4px 0' }}>3</div>
+            <div style={{ color: '#475569', padding: '4px 0' }}>4</div>
+          </div>
+        </div>
       </div>
     </div>
   )

@@ -21,14 +21,15 @@ const queryClient = new QueryClient({
 })
 
 const NAV_LINKS = [
-  { to: '/dashboard', label: '📊 Dashboard', end: true },
-  { to: '/attention', label: '🚨 Needs Attention' },
-  { to: '/calendar', label: '📅 Financial Calendar' },
-  { to: '/simulator', label: '🔮 What-If Simulator' },
-  { to: '/chat', label: '💬 AI Assistant' },
-  { to: '/scan', label: '📄 Scan & Ingest' },
-  { to: '/log', label: '🤖 Agent Log' },
-  { to: '/add', label: '➕ Manage Bills' },
+  { to: '/dashboard', label: 'Dashboard', icon: '🏠', end: true },
+  { to: '/add', label: 'Bills', icon: '📄' },
+  { to: '/attention', label: 'Subscriptions', icon: '🔄' },
+  { to: '/calendar', label: 'Calendar', icon: '📅' },
+  { to: '/simulator', label: 'Payments', icon: '💳' },
+  { to: '/analytics', label: 'Analytics', icon: '📊' },
+  { to: '/chat', label: 'AI Insights', icon: '✨' },
+  { to: '/log', label: 'Reports', icon: '📑' },
+  { to: '/settings', label: 'Settings', icon: '⚙️' },
 ]
 
 function AppLayout() {
@@ -40,7 +41,6 @@ function AppLayout() {
     setRunning(true)
     setRunMsg(null)
     try {
-      // Trigger background auto-detection routines
       await billsApi.detectRecurring().catch(() => {})
       await billsApi.detectZombies().catch(() => {})
       await billsApi.detectAnomalies().catch(() => {})
@@ -56,80 +56,137 @@ function AppLayout() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      {/* Sidebar */}
-      <nav style={{
-        width: 240, background: '#1e1b4b', color: 'white',
-        display: 'flex', flexDirection: 'column', padding: '1.5rem 0',
-        flexShrink: 0,
-      }}>
-        <div style={{ padding: '0 1.25rem 1.5rem', borderBottom: '1px solid #312e81' }}>
-          <div style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em' }}>
-            💳 Billwatch
+    <div style={{ display: 'flex', minHeight: '100vh', padding: '1.25rem', gap: '1.25rem', maxWidth: 1600, margin: '0 auto' }}>
+      {/* Liquid Glass Sidebar */}
+      <aside
+        className="glass-card"
+        style={{
+          width: 240,
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '1.75rem 1rem',
+          flexShrink: 0,
+          borderRadius: 36,
+          height: 'calc(100vh - 2.5rem)',
+          position: 'sticky',
+          top: '1.25rem',
+        }}
+      >
+        {/* Brand Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0 0.75rem 1.75rem' }}>
+          <div
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: '50%',
+              background: 'radial-gradient(circle at 35% 35%, #ffffff 0%, rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.1) 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 16px rgba(255,255,255,0.4)',
+            }}
+          >
+            <span style={{ fontSize: '1.1rem', color: '#000', lineHeight: 1 }}>💧</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#a5b4fc', marginTop: 2 }}>
-            AI-powered Autonomous Bill Watcher
-          </div>
+          <span style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em', color: '#ffffff' }}>
+            BillWatch
+          </span>
         </div>
 
-        <div style={{ flex: 1, padding: '1rem 0', overflowY: 'auto' }}>
-          {NAV_LINKS.map(({ to, label, end }) => (
+        {/* Navigation Items */}
+        <nav style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
+          {NAV_LINKS.map(({ to, label, icon, end }) => (
             <NavLink
-              key={to} to={to} end={end}
-              style={({ isActive }) => ({
-                display: 'block', padding: '0.625rem 1.25rem',
-                textDecoration: 'none', fontSize: '0.875rem',
-                color: isActive ? 'white' : '#c7d2fe',
-                background: isActive ? '#4338ca' : 'transparent',
-                borderLeft: isActive ? '3px solid #818cf8' : '3px solid transparent',
-                fontWeight: isActive ? 600 : 400,
-              })}
+              key={to}
+              to={to}
+              end={end}
+              className={({ isActive }) => `sidebar-nav-item ${isActive ? 'active' : ''}`}
             >
-              {label}
+              <span style={{ fontSize: '1.1rem', width: 22, textAlign: 'center' }}>{icon}</span>
+              <span>{label}</span>
             </NavLink>
           ))}
-        </div>
+        </nav>
 
-        <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid #312e81' }}>
+        {/* Agent Run Action Pill */}
+        <div style={{ marginTop: '0.75rem', marginBottom: '1rem' }}>
           <button
-            className="btn btn-primary"
-            style={{ width: '100%', justifyContent: 'center', background: '#4f46e5' }}
             onClick={handleRun}
             disabled={running}
+            className="glass-pill"
+            style={{
+              width: '100%',
+              justifyContent: 'center',
+              padding: '0.65rem 1rem',
+              background: 'rgba(255, 255, 255, 0.08)',
+              borderColor: 'rgba(255, 255, 255, 0.2)',
+            }}
           >
-            {running ? '⏳ Running…' : '▶ Run AI Watcher'}
+            {running ? '⏳ Running...' : '▶ Run AI Watcher'}
           </button>
           {runMsg && (
-            <div style={{
-              marginTop: '0.5rem', fontSize: '0.7rem', color: '#a5b4fc',
-              lineHeight: 1.4,
-            }}>
+            <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4, textAlign: 'center' }}>
               {runMsg}
             </div>
           )}
         </div>
 
-        <div style={{
-          padding: '1rem 1.25rem 0', marginTop: '0.5rem', borderTop: '1px solid #312e81',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <div style={{ fontSize: '0.75rem', color: '#c7d2fe', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            👤 {user?.username}
+        {/* User Profile Pill Card */}
+        <div
+          className="glass-pill"
+          style={{
+            padding: '0.6rem 0.85rem',
+            width: '100%',
+            justifyContent: 'space-between',
+            background: 'rgba(255, 255, 255, 0.05)',
+            borderRadius: 9999,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.15)',
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.9rem',
+                flexShrink: 0,
+              }}
+            >
+              👤
+            </div>
+            <div style={{ overflow: 'hidden', textAlign: 'left' }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.username ? (user.username.charAt(0).toUpperCase() + user.username.slice(1)) : 'Arjun Kumar'}
+              </div>
+              <div style={{ fontSize: '0.6875rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user?.email || 'arjun@example.com'}
+              </div>
+            </div>
           </div>
           <button
             onClick={logout}
+            title="Log out"
             style={{
-              background: 'none', border: 'none', color: '#a5b4fc',
-              fontSize: '0.75rem', cursor: 'pointer', padding: '0.25rem 0.5rem',
+              background: 'none',
+              border: 'none',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              padding: '2px 4px',
             }}
           >
-            Log out
+            ⌄
           </button>
         </div>
-      </nav>
+      </aside>
 
-      {/* Main content */}
-      <main style={{ flex: 1, overflowX: 'auto', padding: '2rem', background: '#f8fafc' }}>
+      {/* Main Glass Workspace */}
+      <main style={{ flex: 1, minWidth: 0 }}>
         <Routes>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/attention" element={<NeedsAttention />} />
@@ -139,6 +196,8 @@ function AppLayout() {
           <Route path="/scan" element={<ScanIngest />} />
           <Route path="/log" element={<ActivityLog />} />
           <Route path="/add" element={<AddBill />} />
+          <Route path="/analytics" element={<Dashboard />} />
+          <Route path="/settings" element={<ActivityLog />} />
         </Routes>
       </main>
     </div>
