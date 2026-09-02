@@ -76,12 +76,12 @@ export default function AIAssistantChat() {
     <div style={{ maxWidth: 1000, margin: '0 auto', height: 'calc(100vh - 4.5rem)', display: 'flex', flexDirection: 'column' }}>
       <div style={{ marginBottom: '1.25rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <HiOutlineSparkles size={22} style={{ color: '#ffffff' }} />
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <HiOutlineSparkles size={22} style={{ color: 'var(--text-white)' }} />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: 'var(--text-white)', letterSpacing: '-0.02em' }}>
             AI Financial Assistant
           </h1>
         </div>
-        <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
           Conversational copilot powered by your real-time bills, health scores, and agent tools.
         </p>
       </div>
@@ -96,7 +96,7 @@ export default function AIAssistantChat() {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.25rem',
-          background: 'rgba(255, 255, 255, 0.02)',
+          background: 'rgba(var(--surface-rgb), 0.02)',
         }}
       >
         {messages.map((m, i) => (
@@ -112,12 +112,12 @@ export default function AIAssistantChat() {
           >
             <div
               style={{
-                background: m.sender === 'user' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                color: '#ffffff',
+                background: m.sender === 'user' ? 'rgba(var(--surface-rgb), 0.15)' : 'rgba(var(--surface-rgb), 0.05)',
+                color: 'var(--text-white)',
                 padding: '0.875rem 1.125rem',
                 borderRadius: 18,
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
+                border: '1px solid rgba(var(--surface-rgb), 0.15)',
+                boxShadow: 'inset 0 1px 1px rgba(var(--surface-rgb),0.2)',
                 fontSize: '0.9rem',
                 lineHeight: 1.5,
                 whiteSpace: 'pre-wrap',
@@ -125,7 +125,7 @@ export default function AIAssistantChat() {
             >
               {m.text}
             </div>
-            <span style={{ fontSize: '0.7rem', color: '#64748b', marginTop: 4 }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 4 }}>
               {m.timestamp}
             </span>
 
@@ -140,8 +140,8 @@ export default function AIAssistantChat() {
                     style={{
                       fontSize: '0.75rem',
                       padding: '0.35rem 0.75rem',
-                      background: 'rgba(255, 255, 255, 0.04)',
-                      borderColor: 'rgba(255, 255, 255, 0.12)',
+                      background: 'rgba(var(--surface-rgb), 0.04)',
+                      borderColor: 'rgba(var(--surface-rgb), 0.12)',
                     }}
                   >
                     <HiOutlineLightBulb size={13} /> {s}
@@ -152,7 +152,7 @@ export default function AIAssistantChat() {
           </div>
         ))}
         {chatMutation.isPending && (
-          <div style={{ alignSelf: 'flex-start', color: '#94a3b8', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{ alignSelf: 'flex-start', color: 'var(--text-secondary)', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <div className="spinner" style={{ width: 16, height: 16 }} />
             AI is analyzing your financial data...
           </div>
@@ -172,10 +172,10 @@ export default function AIAssistantChat() {
             flex: 1,
             padding: '0.875rem 1.125rem',
             borderRadius: 9999,
-            border: '1px solid rgba(255, 255, 255, 0.15)',
+            border: '1px solid rgba(var(--surface-rgb), 0.15)',
             fontSize: '0.95rem',
-            background: 'rgba(255, 255, 255, 0.04)',
-            color: '#ffffff',
+            background: 'rgba(var(--surface-rgb), 0.04)',
+            color: 'var(--text-white)',
           }}
         />
         <button

@@ -58,12 +58,12 @@ export default function AddBill() {
     <div style={{ maxWidth: 900, margin: '0 auto' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <HiOutlinePlusCircle size={24} style={{ color: '#ffffff' }} />
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <HiOutlinePlusCircle size={24} style={{ color: 'var(--text-white)' }} />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: 'var(--text-white)', letterSpacing: '-0.02em' }}>
             Add Bill or Subscription
           </h1>
         </div>
-        <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
           Add an obligation manually or bulk import a statement via CSV.
         </p>
       </div>
@@ -71,12 +71,12 @@ export default function AddBill() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {/* Form Card */}
         <div className="glass-card">
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-white)' }}>
             Manual Entry
           </h2>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Bill / Service Name</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Bill / Service Name</label>
               <input
                 required
                 type="text"
@@ -88,7 +88,7 @@ export default function AddBill() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Amount</label>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Amount</label>
                 <input
                   required
                   type="number"
@@ -99,7 +99,7 @@ export default function AddBill() {
                 />
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Previous Amount</label>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Previous Amount</label>
                 <input
                   type="number"
                   step="0.01"
@@ -112,7 +112,7 @@ export default function AddBill() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Category</label>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Category</label>
                 <select
                   value={form.category}
                   onChange={e => setForm({ ...form, category: e.target.value as BillCategory, is_subscription: e.target.value === 'subscription' })}
@@ -124,7 +124,7 @@ export default function AddBill() {
                 </select>
               </div>
               <div>
-                <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Recurrence</label>
+                <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Recurrence</label>
                 <select
                   value={form.recurrence}
                   onChange={e => setForm({ ...form, recurrence: e.target.value as BillRecurrence })}
@@ -138,7 +138,7 @@ export default function AddBill() {
             </div>
 
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 4, display: 'block' }}>Due Date</label>
+              <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: 4, display: 'block' }}>Due Date</label>
               <input
                 required
                 type="date"
@@ -160,10 +160,10 @@ export default function AddBill() {
 
         {/* Bulk CSV Card */}
         <div className="glass-card">
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-white)' }}>
             Bulk CSV Import
           </h2>
-          <p style={{ fontSize: '0.8125rem', color: '#94a3b8', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
             Import your credit card or bank statement export in CSV format.
           </p>
 
@@ -185,7 +185,7 @@ export default function AddBill() {
           </button>
 
           {csvStatus && (
-            <div style={{ marginTop: '1rem', fontSize: '0.8125rem', color: '#ffffff', textAlign: 'center' }}>
+            <div style={{ marginTop: '1rem', fontSize: '0.8125rem', color: 'var(--text-white)', textAlign: 'center' }}>
               {csvStatus}
             </div>
           )}

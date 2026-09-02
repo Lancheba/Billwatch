@@ -54,12 +54,12 @@ export default function ScanIngest() {
     <div style={{ maxWidth: 1000, margin: '0 auto' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <HiOutlineDocumentMagnifyingGlass size={24} style={{ color: '#ffffff' }} />
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+          <HiOutlineDocumentMagnifyingGlass size={24} style={{ color: 'var(--text-white)' }} />
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: 'var(--text-white)', letterSpacing: '-0.02em' }}>
             Smart Ingest & AI Scanner
           </h1>
         </div>
-        <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
           Scan receipts, invoice texts, and automatically sync recurring bills from email feeds.
         </p>
       </div>
@@ -67,10 +67,10 @@ export default function ScanIngest() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
         {/* Box 1: Receipt / Invoice OCR Scanner */}
         <div className="glass-card">
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-white)' }}>
             AI Receipt & Invoice Scanner
           </h2>
-          <p style={{ fontSize: '0.8125rem', color: '#94a3b8', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
             Paste raw receipt text, invoice dumps, or email confirmations:
           </p>
 
@@ -98,14 +98,14 @@ export default function ScanIngest() {
 
           {/* Extracted Preview */}
           {scannedBill && (
-            <div className="glass-card" style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(255,255,255,0.04)' }}>
+            <div className="glass-card" style={{ marginTop: '1.25rem', padding: '1rem', background: 'rgba(var(--surface-rgb),0.04)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#ffffff' }}>Parsed Bill Preview</span>
+                <span style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-white)' }}>Parsed Bill Preview</span>
                 <span className="glass-pill" style={{ fontSize: '0.7rem' }}>
                   {Math.round(scannedBill.confidence_score * 100)}% Confidence
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8125rem', marginBottom: '1rem', color: '#cbd5e1' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.8125rem', marginBottom: '1rem', color: 'var(--text-silver)' }}>
                 <div><strong>Name:</strong> {scannedBill.name}</div>
                 <div><strong>Amount:</strong> {fmtCurrency(scannedBill.amount)}</div>
                 <div><strong>Due Date:</strong> {scannedBill.due_date}</div>
@@ -126,10 +126,10 @@ export default function ScanIngest() {
 
         {/* Box 2: Smart Email Mailbox Sync */}
         <div className="glass-card">
-          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-white)' }}>
             Smart Email Bill Ingestion
           </h2>
-          <p style={{ fontSize: '0.8125rem', color: '#94a3b8', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
             Sync and scan inbox statements for known recurring billing receipts (Adobe, ConEd, GitHub, AWS).
           </p>
 
@@ -145,14 +145,14 @@ export default function ScanIngest() {
 
           {emailCandidates.length > 0 && (
             <div style={{ marginTop: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#ffffff' }}>
+              <span style={{ fontSize: '0.875rem', fontWeight: 700, color: 'var(--text-white)' }}>
                 Found {emailCandidates.length} Recurring Invoices:
               </span>
               {emailCandidates.map((c, i) => (
                 <div key={i} className="glass-card" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: '#ffffff' }}>{c.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-white)' }}>{c.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                       {c.category} · {fmtCurrency(c.amount)} · Due {c.due_date}
                     </div>
                   </div>

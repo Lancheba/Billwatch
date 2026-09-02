@@ -15,6 +15,8 @@ import ActivityLog from './pages/ActivityLog'
 import AddBill from './pages/AddBill'
 import { agentApi, billsApi } from './api'
 import { AuthProvider, useAuth } from './AuthContext'
+import { ThemeProvider } from './ThemeContext'
+import ThemeToggle from './ThemeToggle'
 
 // React Icons
 import { IoWaterOutline } from 'react-icons/io5'
@@ -90,29 +92,33 @@ function AppLayout() {
         }}
       >
         {/* Brand Logo with Droplet Icon */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0 0.75rem 1.75rem' }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle at 35% 35%, #ffffff 0%, rgba(255,255,255,0.4) 60%, rgba(255,255,255,0.1) 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 0 16px rgba(255,255,255,0.4)',
-              color: '#000000',
-            }}
-          >
-            <IoWaterOutline size={20} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.625rem', padding: '0 0.75rem 1.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', overflow: 'hidden' }}>
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: '50%',
+                background: 'radial-gradient(circle at 35% 35%, var(--invert-solid) 0%, rgba(var(--invert-rgb),0.4) 60%, rgba(var(--invert-rgb),0.1) 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 0 16px rgba(var(--invert-rgb),0.4)',
+                color: 'var(--invert-text)',
+                flexShrink: 0,
+              }}
+            >
+              <IoWaterOutline size={20} />
+            </div>
+            <span style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em', color: 'var(--text-white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              BillWatch
+            </span>
           </div>
-          <span style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em', color: '#ffffff' }}>
-            BillWatch
-          </span>
+          <ThemeToggle />
         </div>
 
         {/* Navigation Items */}
-        <nav style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
+        <nav className="sidebar-scroll" style={{ flex: 1, overflowY: 'auto', paddingRight: 4 }}>
           {NAV_LINKS.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -136,15 +142,15 @@ function AppLayout() {
               width: '100%',
               justifyContent: 'center',
               padding: '0.65rem 1rem',
-              background: 'rgba(255, 255, 255, 0.08)',
-              borderColor: 'rgba(255, 255, 255, 0.2)',
+              background: 'rgba(var(--surface-rgb), 0.08)',
+              borderColor: 'rgba(var(--surface-rgb), 0.2)',
             }}
           >
             <HiOutlinePlay size={14} />
             <span>{running ? 'Running...' : 'Run AI Watcher'}</span>
           </button>
           {runMsg && (
-            <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 4, textAlign: 'center' }}>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginTop: 4, textAlign: 'center' }}>
               {runMsg}
             </div>
           )}
@@ -157,7 +163,7 @@ function AppLayout() {
             padding: '0.6rem 0.85rem',
             width: '100%',
             justifyContent: 'space-between',
-            background: 'rgba(255, 255, 255, 0.05)',
+            background: 'rgba(var(--surface-rgb), 0.05)',
             borderRadius: 9999,
           }}
         >
@@ -167,22 +173,22 @@ function AppLayout() {
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
-                background: 'rgba(255, 255, 255, 0.15)',
-                border: '1px solid rgba(255, 255, 255, 0.3)',
+                background: 'rgba(var(--surface-rgb), 0.15)',
+                border: '1px solid rgba(var(--surface-rgb), 0.3)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ffffff',
+                color: 'var(--text-white)',
                 flexShrink: 0,
               }}
             >
               <HiOutlineUser size={16} />
             </div>
             <div style={{ overflow: 'hidden', textAlign: 'left' }}>
-              <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--text-white)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {user?.username ? (user.username.charAt(0).toUpperCase() + user.username.slice(1)) : 'Arjun Kumar'}
               </div>
-              <div style={{ fontSize: '0.6875rem', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <div style={{ fontSize: '0.6875rem', color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {user?.email || 'arjun@example.com'}
               </div>
             </div>
@@ -193,7 +199,7 @@ function AppLayout() {
             style={{
               background: 'none',
               border: 'none',
-              color: '#94a3b8',
+              color: 'var(--text-secondary)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -244,12 +250,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppRoutes />
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppRoutes />
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ThemeProvider>
   )
 }

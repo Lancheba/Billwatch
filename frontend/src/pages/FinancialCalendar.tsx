@@ -58,12 +58,12 @@ export default function FinancialCalendar() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <HiOutlineCalendar size={24} style={{ color: '#ffffff' }} />
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: '#ffffff', letterSpacing: '-0.02em' }}>
+            <HiOutlineCalendar size={24} style={{ color: 'var(--text-white)' }} />
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, color: 'var(--text-white)', letterSpacing: '-0.02em' }}>
               Financial Calendar
             </h1>
           </div>
-          <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '0.25rem 0 0' }}>
             Track payment spikes, daily totals, and upcoming bill due dates across the month.
           </p>
         </div>
@@ -73,7 +73,7 @@ export default function FinancialCalendar() {
           <button className="glass-icon-btn" onClick={prevMonth} style={{ width: 36, height: 36 }}>
             <HiOutlineChevronLeft size={16} />
           </button>
-          <span style={{ fontWeight: 700, fontSize: '1.05rem', minWidth: 160, textAlign: 'center', color: '#ffffff' }}>
+          <span style={{ fontWeight: 700, fontSize: '1.05rem', minWidth: 160, textAlign: 'center', color: 'var(--text-white)' }}>
             {MONTH_NAMES[month - 1]} {year}
           </span>
           <button className="glass-icon-btn" onClick={nextMonth} style={{ width: 36, height: 36 }}>
@@ -86,15 +86,15 @@ export default function FinancialCalendar() {
       {data && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
           <div className="glass-card">
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>MONTHLY TOTAL DUE</div>
-            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#ffffff', marginTop: 4 }}>
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>MONTHLY TOTAL DUE</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-white)', marginTop: 4 }}>
               {fmtCurrency(data.month_total)}
             </div>
           </div>
           {data.highest_expense_day && (
             <div className="glass-card">
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>PEAK EXPENSE DAY</div>
-              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ffffff', marginTop: 4 }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontWeight: 600 }}>PEAK EXPENSE DAY</div>
+              <div style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-white)', marginTop: 4 }}>
                 {fmtDate(data.highest_expense_day)} ({fmtCurrency(data.day_totals[data.highest_expense_day])})
               </div>
             </div>
@@ -104,7 +104,7 @@ export default function FinancialCalendar() {
 
       {/* Calendar Grid */}
       <div className="glass-card" style={{ padding: '1.25rem' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', textAlign: 'center', fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(var(--surface-rgb),0.06)' }}>
           <div>MON</div>
           <div>TUE</div>
           <div>WED</div>
@@ -122,7 +122,7 @@ export default function FinancialCalendar() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 8, paddingTop: 8 }}>
             {dayCards.map((dayStr, idx) => {
               if (!dayStr) {
-                return <div key={`empty-${idx}`} style={{ minHeight: 90, background: 'rgba(255,255,255,0.01)', borderRadius: 12 }} />
+                return <div key={`empty-${idx}`} style={{ minHeight: 90, background: 'rgba(var(--surface-rgb),0.01)', borderRadius: 12 }} />
               }
               const dayNum = parseInt(dayStr.split('-')[2], 10)
               const bills = data?.days[dayStr] || []
@@ -138,8 +138,8 @@ export default function FinancialCalendar() {
                     minHeight: 90,
                     padding: '0.5rem',
                     borderRadius: 14,
-                    background: isSelected ? 'rgba(255, 255, 255, 0.15)' : isPeak ? 'rgba(255, 255, 255, 0.08)' : bills.length > 0 ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.02)',
-                    border: isSelected ? '1.5px solid #ffffff' : '1px solid rgba(255,255,255,0.08)',
+                    background: isSelected ? 'rgba(var(--surface-rgb), 0.15)' : isPeak ? 'rgba(var(--surface-rgb), 0.08)' : bills.length > 0 ? 'rgba(var(--surface-rgb), 0.04)' : 'rgba(var(--surface-rgb), 0.02)',
+                    border: isSelected ? '1.5px solid var(--text-white)' : '1px solid rgba(var(--surface-rgb),0.08)',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -148,11 +148,11 @@ export default function FinancialCalendar() {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: isSelected ? '#ffffff' : '#cbd5e1' }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.875rem', color: isSelected ? 'var(--text-white)' : 'var(--text-silver)' }}>
                       {dayNum}
                     </span>
                     {total && (
-                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#ffffff' }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--text-white)' }}>
                         {fmtCurrency(total)}
                       </span>
                     )}
@@ -163,14 +163,14 @@ export default function FinancialCalendar() {
                         key={b.id}
                         style={{
                           fontSize: '0.65rem',
-                          background: 'rgba(255,255,255,0.06)',
-                          color: '#ffffff',
+                          background: 'rgba(var(--surface-rgb),0.06)',
+                          color: 'var(--text-white)',
                           padding: '1px 5px',
                           borderRadius: 4,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
-                          border: '1px solid rgba(255,255,255,0.1)',
+                          border: '1px solid rgba(var(--surface-rgb),0.1)',
                           fontWeight: 500,
                         }}
                       >
@@ -178,7 +178,7 @@ export default function FinancialCalendar() {
                       </div>
                     ))}
                     {bills.length > 2 && (
-                      <div style={{ fontSize: '0.65rem', color: '#94a3b8', textAlign: 'center' }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
                         +{bills.length - 2} more
                       </div>
                     )}
@@ -194,7 +194,7 @@ export default function FinancialCalendar() {
       {selectedDay && (
         <div className="glass-card" style={{ marginTop: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: '#ffffff' }}>
+            <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-white)' }}>
               Bills Due on {fmtDate(selectedDay)}
             </h3>
             <button
@@ -206,16 +206,16 @@ export default function FinancialCalendar() {
             </button>
           </div>
           {selectedBills.length === 0 ? (
-            <p style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No bills due on this date.</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>No bills due on this date.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {selectedBills.map((b: BillBrief) => (
                 <div key={b.id} className="glass-card" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <div style={{ fontWeight: 600, color: '#ffffff' }}>{b.name}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{b.category} · {b.recurrence}</div>
+                    <div style={{ fontWeight: 600, color: 'var(--text-white)' }}>{b.name}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{b.category} · {b.recurrence}</div>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: '#ffffff' }}>
+                  <div style={{ fontWeight: 700, fontSize: '1.05rem', color: 'var(--text-white)' }}>
                     {fmtCurrency(b.amount)}
                   </div>
                 </div>
