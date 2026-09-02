@@ -9,16 +9,9 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.conf import settings
 from django.utils import timezone
-from .models import Bill, DecisionLog, PriceHistory, AIInsight
+from .models import Bill, DecisionLog, PriceHistory, AIInsight, MONTHLY_MULTIPLIER
 
 TWO_PLACES = Decimal("0.01")
-
-MONTHLY_MULTIPLIER = {
-    "monthly": Decimal("1"),
-    "weekly": Decimal("52") / Decimal("12"),
-    "yearly": Decimal("1") / Decimal("12"),
-    "one_time": Decimal("0"),
-}
 
 
 def money(value) -> str:
@@ -28,7 +21,8 @@ def money(value) -> str:
 
 
 def monthly_equivalent(bill: Bill) -> Decimal:
-    return bill.amount * MONTHLY_MULTIPLIER.get(bill.recurrence, Decimal("0"))
+    """Kept for backward compatibility — delegates to Bill.monthly_equivalent."""
+    return bill.monthly_equivalent
 
 
 def bill_brief(bill: Bill) -> dict:
@@ -40,6 +34,8 @@ def bill_brief(bill: Bill) -> dict:
         "amount": money(bill.amount),
         "previous_amount": money(bill.previous_amount) if bill.previous_amount else None,
         "due_date": bill.due_date.isoformat(),
+        "days_until_due": bill.days_until_due,
+        "is_overdue": bill.is_overdue,
         "recurrence": bill.recurrence,
         "is_subscription": bill.is_subscription,
         "confidence_score": bill.confidence_score,
@@ -163,7 +159,7 @@ def detect_zombie_subscriptions(user, idle_days_threshold=45):
                     "title": f"Zombie Subscription: {sub.name}",
                     "message": (
                         f"You have not used {sub.name} in {idle_days} days. "
-                        f"Cancelling will save /mo (/yr)."
+                        f"Cancelling will save {money(monthly_val)}/mo ({money(annual_val)}/yr)."
                     ),
                     "payload": {
                         "bill_id": sub.id,
@@ -191,6 +187,91 @@ def detect_zombie_subscriptions(user, idle_days_threshold=45):
         "zombie_count": len(zombies),
         "total_annual_waste": money(total_annual),
         "zombies": zombies,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Warranty Expiry Detector
+# ---------------------------------------------------------------------------
+
+def detect_expiring_warranties(user, days_threshold=30):
+    """
+    Flags warranty-category bills that need attention within `days_threshold`
+    days — either because the overall coverage (Bill.due_date) is expiring,
+    or because the retailer's return/exchange window (purchase_date +
+    return_window_days) is about to close, whichever is more urgent.
+    Creates or updates AIInsight records so expiring coverage surfaces the
+    same way zombie subscriptions and price hikes do.
+    """
+    warranties = Bill.objects.filter(
+        owner=user, category="warranty",
+    ).exclude(status__in=["cancelled", "paid"])
+
+    expiring = []
+    for w in warranties:
+        days_left = w.days_until_due
+        detail = getattr(w, "warranty_detail", None)
+        return_window_days = detail.return_window_days if detail else None
+        return_days_left = detail.return_days_left if detail else None
+        in_return_window = detail.is_in_return_window if detail else False
+
+        coverage_expiring = 0 <= days_left <= days_threshold
+        # Return window is still open and closes within the look-ahead window
+        return_window_closing = in_return_window and return_days_left <= days_threshold
+
+        if not (coverage_expiring or return_window_closing):
+            continue
+
+        # Whichever deadline is sooner drives urgency/messaging
+        if in_return_window and (not coverage_expiring or return_days_left <= days_left):
+            urgent_days_left = return_days_left
+            urgency_reason = "return window"
+        else:
+            urgent_days_left = days_left
+            urgency_reason = "coverage"
+
+        priority = "critical" if urgent_days_left <= 7 else "important"
+
+        insight, _created = AIInsight.objects.update_or_create(
+            user=user,
+            bill=w,
+            insight_type="warranty_expiring",
+            defaults={
+                "priority": priority,
+                "title": f"Warranty Expiring: {w.name}",
+                "message": (
+                    f"{w.name} return window closes in {return_days_left} day(s)."
+                    if urgency_reason == "return window"
+                    else (
+                        f"{w.name} coverage expires in {days_left} day(s) (on {w.due_date.isoformat()}). "
+                        "File a claim now if there's a known issue before coverage lapses."
+                    )
+                ),
+                "payload": {
+                    "bill_id": w.id,
+                    "bill_name": w.name,
+                    "expires_on": w.due_date.isoformat(),
+                    "days_left": days_left,
+                    "retailer": detail.retailer if detail else "",
+                    "return_window_days": return_window_days,
+                    "return_days_left": return_days_left,
+                    "in_return_window": in_return_window,
+                    "claim_url": detail.claim_url if detail and detail.claim_url else None,
+                },
+                "dismissed": False,
+            },
+        )
+        expiring.append({
+            **bill_brief(w),
+            "days_left": days_left,
+            "in_return_window": in_return_window,
+            "return_days_left": return_days_left,
+            "insight_id": insight.id,
+        })
+
+    return {
+        "expiring_count": len(expiring),
+        "warranties": expiring,
     }
 
 

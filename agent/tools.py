@@ -140,6 +140,28 @@ def check_due_soon(days: int = 7) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# Tool 2b — check_warranty_expiring
+# ---------------------------------------------------------------------------
+
+@tool
+def check_warranty_expiring(days: int = 30) -> list[dict]:
+    """
+    Return warranty-category bills whose coverage expires within `days` days,
+    by triggering /api/bills/detect-warranties/. Items inside their retailer
+    return window are the most time-sensitive.
+
+    Args:
+        days: Look-ahead window in days (default 30).
+
+    Returns:
+        List of expiring-warranty dicts, each including `days_left` and
+        `in_return_window`.
+    """
+    data = _api("post", "bills/detect-warranties/", json={"threshold_days": days})
+    return data.get("warranties", [])
+
+
+# ---------------------------------------------------------------------------
 # Tool 3 — detect_anomaly
 # ---------------------------------------------------------------------------
 
@@ -317,6 +339,60 @@ Thank you,
 
 ---
 [DRAFT — Needs your approval before sending]
+"""
+
+
+# ---------------------------------------------------------------------------
+# Tool 6b — draft_warranty_action
+# ---------------------------------------------------------------------------
+
+@tool
+def draft_warranty_action(warranty: dict) -> str:
+    """
+    Draft a return/exchange request (if still inside the return window) or a
+    warranty claim reminder (if only the manufacturer warranty remains) for
+    an item whose coverage is expiring soon.
+
+    Args:
+        warranty: A warranty-bill dict as returned by check_warranty_expiring
+                   (must include `in_return_window`, `days_left`, and the
+                   underlying bill fields such as `name`, `amount`).
+
+    Returns:
+        A draft message string ready for user review and approval.
+    """
+    name = warranty["name"]
+    amount = float(warranty.get("amount", 0))
+    days_left = warranty.get("days_left")
+    retailer = warranty.get("merchant") or "the retailer"
+
+    if warranty.get("in_return_window"):
+        return f"""Subject: Return/Exchange Request — {name}
+
+To {retailer},
+
+I'm writing to request a return or exchange for {name} (purchased for \
+${amount:.2f}) while it is still within the return window. \
+{f"This window closes in {days_left} day(s)." if days_left is not None else ""}
+
+Please advise on the process for return or exchange.
+
+Thank you,
+[Your Name]
+
+---
+[DRAFT — Needs your approval before sending. Return window is closing soon — act quickly.]
+"""
+
+    return f"""Reminder: {name} — Warranty Expiring Soon
+
+Your warranty coverage on {name} (${amount:.2f}) expires \
+{f"in {days_left} day(s)" if days_left is not None else "soon"}. \
+If there's a known issue, file a claim with the manufacturer or retailer \
+before coverage lapses — after that, repairs or replacement are on you.
+
+---
+[DRAFT — Review before taking action]
 """
 
 

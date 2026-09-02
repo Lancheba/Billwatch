@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Bill, Subscription, DecisionLog
+from .models import Bill, Subscription, Warranty, DecisionLog
 
 
 @admin.register(Bill)
@@ -12,6 +12,11 @@ class BillAdmin(admin.ModelAdmin):
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ["bill", "provider_url"]
+
+
+@admin.register(Warranty)
+class WarrantyAdmin(admin.ModelAdmin):
+    list_display = ["bill", "retailer", "purchase_date", "return_window_days"]
 
 
 @admin.register(DecisionLog)

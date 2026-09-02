@@ -29,6 +29,7 @@ from .services import (
     bill_brief,
     detect_recurring_payments,
     detect_zombie_subscriptions,
+    detect_expiring_warranties,
     detect_spending_anomalies,
     calculate_financial_health,
     simulate_what_if,
@@ -124,6 +125,13 @@ class BillViewSet(viewsets.ModelViewSet):
         """Scan active subscriptions for idle usage and create AI Insights."""
         threshold = int(request.data.get("threshold_days", 45))
         result = detect_zombie_subscriptions(request.user, idle_days_threshold=threshold)
+        return Response(result)
+
+    @action(detail=False, methods=["post"], url_path="detect-warranties")
+    def detect_warranties(self, request):
+        """Scan warranty-category bills for coverage expiring soon and create AI Insights."""
+        threshold = int(request.data.get("threshold_days", 30))
+        result = detect_expiring_warranties(request.user, days_threshold=threshold)
         return Response(result)
 
     @action(detail=False, methods=["post"], url_path="detect-anomalies")
@@ -353,6 +361,7 @@ class DashboardSummaryView(APIView):
 
         # ---- Savings Engine & Zombie summary -----------------------------
         zombie_res = detect_zombie_subscriptions(request.user)
+        warranty_res = detect_expiring_warranties(request.user)
         health_res = calculate_financial_health(request.user)
 
         return Response({
@@ -385,6 +394,10 @@ class DashboardSummaryView(APIView):
                 "annual": zombie_res["total_annual_waste"],
                 "zombie_count": zombie_res["zombie_count"],
                 "stale_subscriptions": zombie_res["zombies"],
+            },
+            "expiring_warranties": {
+                "count": warranty_res["expiring_count"],
+                "warranties": warranty_res["warranties"],
             },
             "financial_health": health_res,
         })

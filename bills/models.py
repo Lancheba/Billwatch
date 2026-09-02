@@ -1,6 +1,17 @@
+from datetime import date, timedelta
+from decimal import Decimal
+
 from django.conf import settings
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
+
+MONTHLY_MULTIPLIER = {
+    "monthly": Decimal("1"),
+    "weekly": Decimal("52") / Decimal("12"),
+    "yearly": Decimal("1") / Decimal("12"),
+    "one_time": Decimal("0"),
+}
 
 
 class Bill(models.Model):
@@ -8,6 +19,7 @@ class Bill(models.Model):
         ("utility", "Utility"),
         ("subscription", "Subscription"),
         ("loan", "Loan"),
+        ("warranty", "Warranty"),
         ("other", "Other"),
     ]
     RECURRENCE_CHOICES = [
@@ -33,8 +45,13 @@ class Bill(models.Model):
     name = models.CharField(max_length=100)
     merchant = models.CharField(max_length=150, blank=True, default="")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default="other")
-    amount = models.DecimalField(max_digits=8, decimal_places=2)
-    previous_amount = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    amount = models.DecimalField(
+        max_digits=8, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
+    )
+    previous_amount = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True,
+        validators=[MinValueValidator(Decimal("0.01"))],
+    )
     due_date = models.DateField()
     recurrence = models.CharField(max_length=20, choices=RECURRENCE_CHOICES, default="monthly")
     is_subscription = models.BooleanField(default=False)
@@ -48,6 +65,14 @@ class Bill(models.Model):
 
     class Meta:
         ordering = ["due_date"]
+        indexes = [
+            # Matches the (owner, due_date range) filter used by due-soon,
+            # the dashboard, and the calendar view.
+            models.Index(fields=["owner", "due_date"], name="bill_owner_due_date_idx"),
+            # Matches the (owner, category, status) filter used by the
+            # warranty and zombie-subscription detectors.
+            models.Index(fields=["owner", "category", "status"], name="bill_owner_cat_status_idx"),
+        ]
 
     def __str__(self):
         return f"{self.name} (${self.amount}) — due {self.due_date}"
@@ -72,6 +97,20 @@ class Bill(models.Model):
                 notes="Initial amount" if is_new else f"Updated from {old_amount}",
             )
 
+    @property
+    def days_until_due(self) -> int:
+        """Days from today until due_date. Negative if already overdue."""
+        return (self.due_date - date.today()).days
+
+    @property
+    def is_overdue(self) -> bool:
+        return self.due_date < date.today() and self.status not in ("paid", "cancelled")
+
+    @property
+    def monthly_equivalent(self):
+        """Normalizes this bill's amount to a monthly figure, regardless of recurrence."""
+        return self.amount * MONTHLY_MULTIPLIER.get(self.recurrence, Decimal("0"))
+
 
 class Subscription(models.Model):
     """Optional richer subscription details linked to a Bill."""
@@ -82,6 +121,49 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"Subscription: {self.bill.name}"
+
+
+class Warranty(models.Model):
+    """
+    Optional richer warranty details linked to a Bill.
+
+    For a warranty item, the parent Bill's `due_date` holds the warranty
+    expiry date and `amount` holds the purchase price (recurrence is
+    typically "one_time"), so warranties reuse the same due-soon /
+    forecast machinery as bills and subscriptions.
+    """
+
+    bill = models.OneToOneField(Bill, on_delete=models.CASCADE, related_name="warranty_detail")
+    retailer = models.CharField(max_length=150, blank=True, default="")
+    purchase_date = models.DateField(null=True, blank=True)
+    return_window_days = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Retailer return/exchange window, in days, if shorter than the warranty itself"
+    )
+    claim_url = models.URLField(null=True, blank=True, help_text="Manufacturer/retailer warranty claim or support page")
+    notes = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Warranty: {self.bill.name} (expires {self.bill.due_date})"
+
+    @property
+    def return_deadline(self):
+        """Last date the item can still be returned/exchanged, or None if unknown."""
+        if self.purchase_date and self.return_window_days is not None:
+            return self.purchase_date + timedelta(days=self.return_window_days)
+        return None
+
+    @property
+    def return_days_left(self):
+        """Days remaining in the return window (negative if already closed), or None if unknown."""
+        deadline = self.return_deadline
+        if deadline is None:
+            return None
+        return (deadline - date.today()).days
+
+    @property
+    def is_in_return_window(self) -> bool:
+        days_left = self.return_days_left
+        return days_left is not None and days_left >= 0
 
 
 class PriceHistory(models.Model):
@@ -108,6 +190,7 @@ class AIInsight(models.Model):
         ("savings", "Savings Opportunity"),
         ("risk", "Financial Risk"),
         ("price_increase", "Price Increase"),
+        ("warranty_expiring", "Warranty Expiring"),
     ]
     PRIORITY_CHOICES = [
         ("critical", "Critical"),

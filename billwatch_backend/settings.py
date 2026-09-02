@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ryd$6%6fnj%g+kh8mf57k-$93yl0jtm&$!gl*3@6wl5q3u!!f('
+# Falls back to a dev-only key so `runserver` still works out of the box;
+# set DJANGO_SECRET_KEY in .env for anything beyond local demo use.
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-ryd$6%6fnj%g+kh8mf57k-$93yl0jtm&$!gl*3@6wl5q3u!!f(",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if h.strip()
+]
 
 
 # Application definition
@@ -142,7 +152,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-CORS_ALLOW_ALL_ORIGINS = True  # dev convenience; tighten in production
+# Only wide-open in DEBUG (local dev); tightened automatically outside it.
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 # Django REST Framework
 REST_FRAMEWORK = {

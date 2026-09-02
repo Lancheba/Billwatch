@@ -25,17 +25,19 @@ from strands.models import BedrockModel
 
 from agent.tools import (
     check_due_soon,
+    check_warranty_expiring,
     detect_anomaly,
     detect_unused_subscription,
     draft_cancellation_email,
     draft_notification,
+    draft_warranty_action,
     ingest_bill,
     log_decision,
 )
 
 SYSTEM_PROMPT = """
-You are a Bill & Subscription Watcher agent. Your job is to review a user's
-bills and subscriptions and take the smallest safe action:
+You are a Bill, Subscription & Warranty Watcher agent. Your job is to review a user's
+bills, subscriptions, and warranty-covered purchases, and take the smallest safe action:
 
 - If a bill is due soon and nothing is unusual: log it as auto_handled, no alert.
 - If a bill's amount increased by more than 5% compared to previous_amount:
@@ -43,15 +45,21 @@ bills and subscriptions and take the smallest safe action:
 - If a subscription hasn't been used in 60+ days:
   flag it, draft a cancellation email, log as drafted_cancellation.
   Do NOT send it — only draft it for user approval.
-- Never take an irreversible action (sending money, cancelling) without
-  explicit human approval.
+- If a warranty-covered item's coverage expires within 30 days:
+  flag it, draft a return/exchange request (if still inside the retailer's
+  return window) or a warranty-claim reminder (if only manufacturer coverage
+  remains), log as drafted_notification.
+- Never take an irreversible action (sending money, cancelling, returning an
+  item) without explicit human approval.
 - Always log your reasoning via log_decision so the user can audit every decision.
 
 Run loop:
-1. call check_due_soon() to get bills due soon
+1. call check_due_soon() to get bills due soon, and check_warranty_expiring() for
+   warranty items expiring soon
 2. for each bill: call detect_anomaly() and detect_unused_subscription()
-3. where flagged: call draft_notification() and/or draft_cancellation_email()
-4. call log_decision() for every bill reviewed
+3. where flagged: call draft_notification(), draft_cancellation_email(), and/or
+   draft_warranty_action() as appropriate
+4. call log_decision() for every bill and warranty reviewed
 """.strip()
 
 
@@ -59,10 +67,12 @@ def build_agent() -> Agent:
     tools = [
         ingest_bill,
         check_due_soon,
+        check_warranty_expiring,
         detect_anomaly,
         detect_unused_subscription,
         draft_notification,
         draft_cancellation_email,
+        draft_warranty_action,
         log_decision,
     ]
 

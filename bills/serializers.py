@@ -1,11 +1,17 @@
 from rest_framework import serializers
-from .models import Bill, Subscription, DecisionLog, PriceHistory, AIInsight
+from .models import Bill, Subscription, Warranty, DecisionLog, PriceHistory, AIInsight
 
 
 class SubscriptionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
         fields = ["provider_url", "usage_notes"]
+
+
+class WarrantyDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warranty
+        fields = ["retailer", "purchase_date", "return_window_days", "claim_url", "notes"]
 
 
 class PriceHistorySerializer(serializers.ModelSerializer):
@@ -16,6 +22,7 @@ class PriceHistorySerializer(serializers.ModelSerializer):
 
 class BillSerializer(serializers.ModelSerializer):
     subscription_detail = SubscriptionDetailSerializer(read_only=True)
+    warranty_detail = WarrantyDetailSerializer(read_only=True)
     price_history = PriceHistorySerializer(many=True, read_only=True)
 
     class Meta:

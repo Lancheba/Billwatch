@@ -5,10 +5,11 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from bills.models import Bill, DecisionLog, Subscription, PriceHistory, AIInsight
+from bills.models import Bill, DecisionLog, Subscription, Warranty, PriceHistory, AIInsight
 from bills.services import (
     detect_recurring_payments,
     detect_zombie_subscriptions,
+    detect_expiring_warranties,
     detect_spending_anomalies,
     calculate_financial_health,
     simulate_what_if,
@@ -21,6 +22,7 @@ from agent.tools import (
     detect_unused_subscription,
     draft_notification,
     draft_cancellation_email,
+    draft_warranty_action,
     ingest_bill,
 )
 
@@ -292,3 +294,91 @@ class CoreServicesTests(TestCase):
         health = calculate_financial_health(self.user)
         self.assertGreaterEqual(health["score"], 80)
         self.assertEqual(health["rating"], "Excellent")
+
+
+class WarrantyDetectionTests(APITestCase):
+    def setUp(self):
+        User = get_user_model()
+        self.user = User.objects.create_user(username="warrantyuser", password="pass12345")
+        self.client.force_authenticate(user=self.user)
+        self.today = date.today()
+
+        # Expiring soon, still inside its return window
+        self.laptop = Bill.objects.create(
+            owner=self.user, name="Laptop", category="warranty",
+            amount="1200.00", due_date=self.today + timedelta(days=5),
+            recurrence="one_time", status="active",
+        )
+        Warranty.objects.create(
+            bill=self.laptop, retailer="BestBuy",
+            purchase_date=self.today - timedelta(days=10),
+            return_window_days=14,
+        )
+
+        # Expiring soon, return window already closed (manufacturer warranty only)
+        self.blender = Bill.objects.create(
+            owner=self.user, name="Blender", category="warranty",
+            amount="80.00", due_date=self.today + timedelta(days=20),
+            recurrence="one_time", status="active",
+        )
+        Warranty.objects.create(
+            bill=self.blender, retailer="Target",
+            purchase_date=self.today - timedelta(days=345),
+            return_window_days=30,
+        )
+
+        # Not expiring soon — should not be flagged
+        self.tv = Bill.objects.create(
+            owner=self.user, name="TV", category="warranty",
+            amount="600.00", due_date=self.today + timedelta(days=200),
+            recurrence="one_time", status="active",
+        )
+        Warranty.objects.create(bill=self.tv, retailer="Costco", return_window_days=90)
+
+    def test_detect_expiring_warranties_service(self):
+        result = detect_expiring_warranties(self.user, days_threshold=30)
+        names = [w["name"] for w in result["warranties"]]
+        self.assertIn("Laptop", names)
+        self.assertIn("Blender", names)
+        self.assertNotIn("TV", names)
+        self.assertEqual(result["expiring_count"], 2)
+
+        by_name = {w["name"]: w for w in result["warranties"]}
+        self.assertTrue(by_name["Laptop"]["in_return_window"])
+        self.assertFalse(by_name["Blender"]["in_return_window"])
+
+        # An AIInsight should be created for each expiring warranty
+        self.assertEqual(
+            AIInsight.objects.filter(user=self.user, insight_type="warranty_expiring").count(), 2
+        )
+        laptop_insight = AIInsight.objects.get(bill=self.laptop, insight_type="warranty_expiring")
+        self.assertEqual(laptop_insight.priority, "critical")
+
+    def test_detect_warranties_endpoint(self):
+        url = reverse("bill-detect-warranties")
+        resp = self.client.post(url, {"threshold_days": 30}, format="json")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.data["expiring_count"], 2)
+
+    def test_dashboard_summary_includes_expiring_warranties(self):
+        resp = self.client.get(reverse("dashboard-summary"))
+        self.assertEqual(resp.data["expiring_warranties"]["count"], 2)
+
+    def test_draft_warranty_action_return_window(self):
+        warranty_dict = {
+            "name": "Laptop", "amount": "1200.00", "merchant": "BestBuy",
+            "days_left": 5, "in_return_window": True,
+        }
+        draft = draft_warranty_action(warranty_dict)
+        self.assertIn("Return/Exchange Request", draft)
+        self.assertIn("Laptop", draft)
+        self.assertIn("DRAFT", draft)
+
+    def test_draft_warranty_action_claim_reminder(self):
+        warranty_dict = {
+            "name": "Blender", "amount": "80.00", "merchant": "Target",
+            "days_left": 20, "in_return_window": False,
+        }
+        draft = draft_warranty_action(warranty_dict)
+        self.assertIn("Warranty Expiring Soon", draft)
+        self.assertIn("Blender", draft)
