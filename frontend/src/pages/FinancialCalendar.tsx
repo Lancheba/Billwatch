@@ -18,6 +18,7 @@ export default function FinancialCalendar() {
   const { data, isLoading } = useQuery({
     queryKey: ['financial-calendar', year, month],
     queryFn: () => dashboardApi.calendar(year, month),
+    meta: { errorMessage: 'Failed to load the financial calendar.' },
   })
 
   const prevMonth = () => {

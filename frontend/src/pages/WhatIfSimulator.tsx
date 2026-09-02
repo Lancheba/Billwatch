@@ -11,12 +11,14 @@ export default function WhatIfSimulator() {
   const { data: bills = [], isLoading } = useQuery({
     queryKey: ['bills'],
     queryFn: billsApi.list,
+    meta: { errorMessage: 'Failed to load bills.' },
   })
 
   const { data: simulation } = useQuery({
     queryKey: ['what-if-simulation', excludedIds],
     queryFn: () => dashboardApi.whatIf(excludedIds),
     enabled: true,
+    meta: { errorMessage: 'Failed to run the what-if simulation.' },
   })
 
   const toggleExclude = (id: number) => {
@@ -43,7 +45,10 @@ export default function WhatIfSimulator() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries()
-      alert('Drafted cancellation workflows triggered for simulated exclusions!')
+    },
+    meta: {
+      errorMessage: 'Failed to draft cancellations for the simulated exclusions.',
+      successMessage: 'Drafted cancellation workflows triggered for simulated exclusions!',
     },
   })
 

@@ -1,6 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import { useState } from 'react'
+import './queryMeta' // registers the typed `meta.errorMessage` / `meta.successMessage` shape (see file for details)
+import { showToast } from './toast'
+import ToastContainer from './ToastContainer'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Signup from './pages/Signup'
@@ -35,8 +38,34 @@ import {
   HiOutlinePlay
 } from 'react-icons/hi'
 
+// Every useQuery/useMutation across the app pages attaches a `meta`
+// object (see queryMeta.ts) describing what to tell the user if it fails
+// (and, for mutations, if it succeeds). These global cache handlers are
+// the single place that turns that meta into an actual notification, so
+// individual pages don't need their own alert()/toast plumbing.
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 10_000 } },
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      const message = query.meta?.errorMessage
+      if (message) {
+        showToast(message, 'error')
+      } else {
+        console.error('Query failed:', query.queryKey, error)
+      }
+    },
+  }),
+  mutationCache: new MutationCache({
+    onSuccess: (_data, _variables, _onMutateResult, mutation) => {
+      const message = mutation.meta?.successMessage
+      if (message) showToast(message, 'success')
+    },
+    onError: (error, _variables, _onMutateResult, mutation) => {
+      const message = mutation.meta?.errorMessage
+      showToast(message ?? 'Something went wrong. Please try again.', 'error')
+      if (!message) console.error('Mutation failed:', error)
+    },
+  }),
 })
 
 const NAV_LINKS = [
@@ -252,6 +281,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
+        <ToastContainer />
         <BrowserRouter>
           <AuthProvider>
             <AppRoutes />

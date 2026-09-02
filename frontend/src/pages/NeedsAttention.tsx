@@ -11,16 +11,19 @@ export default function NeedsAttention() {
   const { data: insights = [], isLoading: insightsLoading } = useQuery({
     queryKey: ['insights'],
     queryFn: () => insightsApi.list(),
+    meta: { errorMessage: 'Failed to load AI insights.' },
   })
 
   const { data: decisions = [] } = useQuery({
     queryKey: ['decisions'],
     queryFn: decisionsApi.list,
+    meta: { errorMessage: 'Failed to load pending decisions.' },
   })
 
   const dismissMutation = useMutation({
     mutationFn: (id: number) => insightsApi.dismiss(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['insights'] }),
+    meta: { errorMessage: 'Failed to dismiss insight.', successMessage: 'Insight dismissed.' },
   })
 
   const actMutation = useMutation({
@@ -31,6 +34,7 @@ export default function NeedsAttention() {
       queryClient.invalidateQueries({ queryKey: ['decisions'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
     },
+    meta: { errorMessage: 'Failed to perform that action.', successMessage: 'Action started successfully.' },
   })
 
   const approveMutation = useMutation({
@@ -40,11 +44,13 @@ export default function NeedsAttention() {
       queryClient.invalidateQueries({ queryKey: ['bills'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
     },
+    meta: { errorMessage: 'Failed to approve decision.', successMessage: 'Decision approved.' },
   })
 
   const rejectMutation = useMutation({
     mutationFn: (id: number) => decisionsApi.reject(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['decisions'] }),
+    meta: { errorMessage: 'Failed to reject decision.', successMessage: 'Decision rejected.' },
   })
 
   const pendingDecisions = decisions.filter(d => d.user_decision === 'pending')

@@ -31,6 +31,7 @@ export default function Dashboard() {
   const { data: summary } = useQuery({
     queryKey: ['dashboard-summary'],
     queryFn: () => dashboardApi.summary(7),
+    meta: { errorMessage: 'Failed to load dashboard summary.' },
   })
 
   // Format currency in Indian Rupee format matching the design

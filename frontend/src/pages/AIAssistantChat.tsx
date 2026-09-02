@@ -54,6 +54,7 @@ export default function AIAssistantChat() {
         },
       ])
     },
+    meta: { errorMessage: 'Encountered an error connecting to the AI engine.' },
   })
 
   const handleSend = (textToSend?: string) => {

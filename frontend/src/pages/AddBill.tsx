@@ -33,6 +33,7 @@ export default function AddBill() {
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
       navigate('/dashboard')
     },
+    meta: { errorMessage: 'Failed to save bill. Please check the form and try again.', successMessage: 'Bill saved successfully!' },
   })
 
   const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -47,6 +48,7 @@ export default function AddBill() {
       setTimeout(() => navigate('/dashboard'), 1500)
     },
     onError: () => setCsvStatus('CSV import failed. Check column headers.'),
+    meta: { errorMessage: 'CSV import failed. Check column headers.', successMessage: 'Bills imported successfully!' },
   })
 
   const handleSubmit = (e: React.FormEvent) => {

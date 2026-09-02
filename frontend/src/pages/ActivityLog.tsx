@@ -9,16 +9,19 @@ export default function ActivityLog() {
   const { data: logs = [], isLoading, error } = useQuery({
     queryKey: ['decisions'],
     queryFn: decisionsApi.list,
+    meta: { errorMessage: 'Failed to load the activity log.' },
   })
 
   const approveMutation = useMutation({
     mutationFn: (id: number) => decisionsApi.approve(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['decisions'] }),
+    meta: { errorMessage: 'Failed to approve decision.', successMessage: 'Decision approved.' },
   })
 
   const rejectMutation = useMutation({
     mutationFn: (id: number) => decisionsApi.reject(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['decisions'] }),
+    meta: { errorMessage: 'Failed to reject decision.', successMessage: 'Decision rejected.' },
   })
 
   if (isLoading) return (

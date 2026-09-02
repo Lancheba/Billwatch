@@ -15,6 +15,7 @@ export default function ScanIngest() {
     onSuccess: (data) => {
       setScannedBill(data.extracted)
     },
+    meta: { errorMessage: 'Failed to parse the receipt text. Try rephrasing it.' },
   })
 
   const emailScanMutation = useMutation({
@@ -22,6 +23,7 @@ export default function ScanIngest() {
     onSuccess: (data) => {
       setEmailCandidates(data.candidates)
     },
+    meta: { errorMessage: 'Failed to scan the connected mailbox.' },
   })
 
   const saveBillMutation = useMutation({
@@ -29,10 +31,10 @@ export default function ScanIngest() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bills'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-summary'] })
-      alert('Bill successfully saved to your catalog!')
       setScannedBill(null)
       setRawText('')
     },
+    meta: { errorMessage: 'Failed to save bill.', successMessage: 'Bill successfully saved to your catalog!' },
   })
 
   const importEmailCandidate = (candidate: any) => {
